@@ -1,8 +1,8 @@
 {
-    "name": "symfony/framework-standard-edition",
+    "name": "mis/health-bundle",
     "license": "MIT",
     "type": "project",
-    "description": "The \"Symfony Standard Edition\" distribution",
+    "description": "The PHP backend support for the mobile application",
     "autoload": {
         "psr-0": { "": "src/", "SymfonyStandard": "app/" }
     },
@@ -18,7 +18,9 @@
         "symfony/monolog-bundle": "~2.4",
         "sensio/distribution-bundle": "~3.0,>=3.0.12",
         "sensio/framework-extra-bundle": "~3.0,>=3.0.2",
-        "incenteev/composer-parameter-handler": "~2.0"
+        "incenteev/composer-parameter-handler": "~2.0",
+        
+        "moop/fatsecret": "dev-master"
     },
     "require-dev": {
         "sensio/generator-bundle": "~2.3"
@@ -57,5 +59,11 @@
         "branch-alias": {
             "dev-master": "2.6-dev"
         }
-    }
+    },
+    "repositories": [
+        {
+            "url": "git@bitbucket.org:oumishealthandfitness/fatsecret.git",
+            "type": "vcs"
+        }
+    ]
 }

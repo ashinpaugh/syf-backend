@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "44526f16f4abfd18c8a026236c003aa8",
+    "hash": "a2cecbd564fa4e351bd86e1b06db7233",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -887,6 +887,54 @@
             "time": "2014-12-12 05:04:05"
         },
         {
+            "name": "kriswallsmith/buzz",
+            "version": "v0.13",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kriswallsmith/Buzz.git",
+                "reference": "487760b05d6269a4c2c374364325326cfa65b12c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kriswallsmith/Buzz/zipball/487760b05d6269a4c2c374364325326cfa65b12c",
+                "reference": "487760b05d6269a4c2c374364325326cfa65b12c",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "3.7.*"
+            },
+            "suggest": {
+                "ext-curl": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Buzz": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kris Wallsmith",
+                    "email": "kris.wallsmith@gmail.com",
+                    "homepage": "http://kriswallsmith.net/"
+                }
+            ],
+            "description": "Lightweight HTTP client",
+            "homepage": "https://github.com/kriswallsmith/Buzz",
+            "keywords": [
+                "curl",
+                "http client"
+            ],
+            "time": "2014-09-15 12:42:36"
+        },
+        {
             "name": "monolog/monolog",
             "version": "1.12.0",
             "source": {
@@ -957,6 +1005,77 @@
                 "psr-3"
             ],
             "time": "2014-12-29 21:29:35"
+        },
+        {
+            "name": "moop/fatsecret",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "git@bitbucket.org:oumishealthandfitness/fatsecret.git",
+                "reference": "f06e3dd47eb38fe5dc41c2194aac5fef723bd35b"
+            },
+            "require": {
+                "doctrine/dbal": "<2.5",
+                "doctrine/doctrine-bundle": "~1.2",
+                "doctrine/orm": "~2.2,>=2.2.3,<2.5",
+                "incenteev/composer-parameter-handler": "~2.0",
+                "kriswallsmith/buzz": "0.13.*",
+                "php": ">=5.3.3",
+                "sensio/distribution-bundle": "~3.0,>=3.0.12",
+                "sensio/framework-extra-bundle": "~3.0,>=3.0.2",
+                "symfony/assetic-bundle": "~2.3",
+                "symfony/monolog-bundle": "~2.4",
+                "symfony/swiftmailer-bundle": "~2.3",
+                "symfony/symfony": "2.6.*",
+                "twig/extensions": "~1.0"
+            },
+            "require-dev": {
+                "sensio/generator-bundle": "~2.3"
+            },
+            "type": "project",
+            "extra": {
+                "symfony-app-dir": "app",
+                "symfony-web-dir": "web",
+                "symfony-assets-install": "relative",
+                "incenteev-parameters": {
+                    "file": "app/config/parameters.yml"
+                },
+                "branch-alias": {
+                    "dev-master": "1.0"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "": "src/",
+                    "SymfonyStandard": "app/"
+                }
+            },
+            "scripts": {
+                "post-root-package-install": [
+                    "SymfonyStandard\\Composer::hookRootPackageInstall"
+                ],
+                "post-install-cmd": [
+                    "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
+                    "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
+                    "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache",
+                    "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installAssets",
+                    "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installRequirementsFile",
+                    "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::removeSymfonyStandardFiles"
+                ],
+                "post-update-cmd": [
+                    "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
+                    "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
+                    "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache",
+                    "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installAssets",
+                    "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installRequirementsFile",
+                    "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::removeSymfonyStandardFiles"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "A FatSecret API Library",
+            "time": "2015-02-11 02:24:05"
         },
         {
             "name": "psr/log",
@@ -1660,7 +1779,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "moop/fatsecret": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

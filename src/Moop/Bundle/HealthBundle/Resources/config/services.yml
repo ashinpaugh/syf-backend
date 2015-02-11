@@ -1,0 +1,5 @@
+services:
+    moop.health.kernel.listener:
+        class: Moop\Bundle\HealthBundle\EventListener\ControllerListener
+        tags:
+            - { name: kernel.event_listener, event: kernel.view, method: onKernelView, priority: 10 }
