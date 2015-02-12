@@ -13,16 +13,16 @@ use Symfony\Component\Routing\Annotation\Route;
 class FoodController extends BaseController
 {
     /**
-     * @Route("/search/{search}", defaults={"page": 0})
+     * @Route("", requirements={"q" = "[a-zA-Z]+"})
      * @Method({"GET"})
      */
-    public function searchAction(Request $request, $search, $page)
+    public function searchAction($q, $page = 0)
     {
-        return $this->getFatAPI()->searchFood($search, 15, $page);
+        return $this->getFatAPI()->searchFood($q, 15, $page);
     }
     
     /**
-     * @Route("/{food_id}")
+     * @Route("/{food_id}", requirements={"q" = "\d+"})
      * @Method({"GET"})
      */
     public function getAction(Request $request, $food_id)

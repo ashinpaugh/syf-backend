@@ -1,6 +1,9 @@
 imports:
     - { resource: config.yml }
 
+parameters:
+    domain: mis-health.dev
+
 framework:
     router:
         resource: "%kernel.root_dir%/config/routing_dev.yml"

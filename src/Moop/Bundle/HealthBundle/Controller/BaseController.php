@@ -17,4 +17,22 @@ class BaseController extends Controller
     {
         return $this->container->get('moop.fat_secret.api');
     }
+    
+    /**
+     * @param $repository
+     *
+     * @return \Doctrine\Common\Persistence\ObjectRepository
+     */
+    protected function getRepository($repository)
+    {
+        return $this->getDoctrine()->getRepository($repository);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function getDoctrine()
+    {
+        return parent::getDoctrine()->getManager();
+    }
 }

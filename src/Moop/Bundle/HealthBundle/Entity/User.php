@@ -2,18 +2,21 @@
 
 namespace Moop\Bundle\HealthBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ORM\Entity(repositoryClass="Moop\Bundle\HealthBundle\Entity\Repository\UserRepository")
- * @ORM\HasLifecycleCallbacks()
  * @ORM\Table(name="user", indexes={
  *  @ORM\Index(name="idx_student_id", columns={"student_id"}),
+ *  @ORM\Index(name="idx_email", columns={"email"}),
  *  @ORM\Index(name="idx_name", columns={"first_name", "last_name"}),
- *  @ORM\Index(name="idx_oauth", columns={"oauth_token", "oauth_token_secret"})
+ *  @ORM\Index(name="idx_oauth", columns={"oauth_token", "oauth_token_secret"}),
+ *  @ORM\Index(name="idx_user_type", columns={"type", "school_id"})
  * })
  */
-class User
+class User extends BaseEntity implements UserInterface
 {
     const STUDENT = 0;
     const FACULTY = 1;
@@ -29,13 +32,43 @@ class User
     protected $school;
     
     /**
+     * @ORM\ManyToMany(targetEntity="Group", mappedBy="members")
+     * @var Group[]
+     */
+    protected $groups;
+    
+    /**
      * @ORM\Id()
-     * @ORM\GeneratedValue()
+     * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(name="id", type="bigint")
      * 
      * @var Integer
      */
     protected $id;
+    
+    /**
+     * @ORM\Column(type="string")
+     * @var String
+     */
+    protected $username;
+    
+    /**
+     * @ORM\Column(type="string")
+     * @var String
+     */
+    protected $password;
+    
+    /**
+     * @ORM\Column(type="string")
+     * @var String
+     */
+    protected $salt;
+    
+    /**
+     * @ORM\Column(type="string")
+     * @var String
+     */
+    protected $display_name;
     
     /**
      * @ORM\Column(name="student_id", type="bigint")
@@ -65,6 +98,12 @@ class User
     protected $date_of_birth;
     
     /**
+     * @ORM\Column(type="string")
+     * @var String
+     */
+    protected $gender;
+    
+    /**
      * @ORM\Column(name="date_created", type="datetime")
      * 
      * @var String
@@ -87,7 +126,7 @@ class User
     /**
      * @ORM\Column(type="smallint")
      * 
-     * @var Boolean
+     * @var Integer
      */
     protected $feature_set;
     
@@ -104,11 +143,65 @@ class User
     protected $oauth_token_secret;
     
     /**
+     * @ORM\Column(type="boolean")
+     * @var Boolean
+     */
+    protected $is_active;
+    
+    /**
      * 
      */
     public function __construct()
     {
-        
+        $this->is_active    = true;
+        $this->groups       = new ArrayCollection();
+        $this->type         = static::STUDENT;
+        $this->feature_set  = static::FULL_FEATURES;
+        $this->date_created = new \DateTime();
+    }
+    
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function getRoles()
+    {
+        return ['ROLE_STUDENT'];
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function eraseCredentials()
+    {
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    protected function getSerializableProperties()
+    {
+        return [
+            'id',
+            'username',
+            'password',
+            'email',
+            'display_name',
+            'student_id',
+            'first_name',
+            'last_name',
+            'date_of_birth',
+            'gender',
+            
+            'date_created',
+            'feature_set',
+            'salt',
+            'type',
+            'is_active',
+            
+            'oauth_token',
+            'oauth_token_secret',
+        ];
     }
     
     /**
@@ -127,7 +220,39 @@ class User
     public function setSchool($school)
     {
         $this->school = $school;
+        $school->addPatron($this);
         
+        return $this;
+    }
+    
+    /**
+     * @return Group[]
+     */
+    public function getGroups()
+    {
+        return $this->groups;
+    }
+    
+    /**
+     * @param Group[] $groups
+     *
+     * @return User
+     */
+    public function setGroups($groups)
+    {
+        $this->groups = $groups;
+        
+        return $this;
+    }
+    
+    /**
+     * @param Group $group
+     *
+     * @return User
+     */
+    public function addGroup(Group $group)
+    {
+        $this->groups->add($group);
         return $this;
     }
     
@@ -147,6 +272,46 @@ class User
     public function setId($id)
     {
         $this->id = $id;
+        
+        return $this;
+    }
+    
+    /**
+     * @return String
+     */
+    public function getUsername()
+    {
+        return $this->username;
+    }
+    
+    /**
+     * @param String $username
+     *
+     * @return User
+     */
+    public function setUsername($username)
+    {
+        $this->username = $username;
+        
+        return $this;
+    }
+    
+    /**
+     * @return String
+     */
+    public function getPassword()
+    {
+        return $this->password;
+    }
+    
+    /**
+     * @param String $password
+     *
+     * @return User
+     */
+    public function setPassword($password)
+    {
+        $this->password = $password;
         
         return $this;
     }
@@ -226,7 +391,12 @@ class User
      */
     public function setDateOfBirth($date_of_birth)
     {
-        $this->date_of_birth = $date_of_birth;
+        if (!$date_of_birth instanceof \DateTime) {
+            $this->date_of_birth = new \DateTime();
+            $this->date_of_birth->setDate($date_of_birth, 1, 1);
+        } else {
+            $this->date_of_birth = $date_of_birth;
+        }
         
         return $this;
     }
@@ -292,15 +462,15 @@ class User
     }
     
     /**
-     * @return boolean
+     * @return int
      */
-    public function isFeatureSet()
+    public function getFeatureSet()
     {
         return $this->feature_set;
     }
     
     /**
-     * @param boolean $feature_set
+     * @param int $feature_set
      *
      * @return User
      */
@@ -347,6 +517,86 @@ class User
     public function setOauthTokenSecret($oauth_token_secret)
     {
         $this->oauth_token_secret = $oauth_token_secret;
+        
+        return $this;
+    }
+    
+    /**
+     * @return String
+     */
+    public function getSalt()
+    {
+        return $this->salt;
+    }
+    
+    /**
+     * @param String $salt
+     *
+     * @return User
+     */
+    public function setSalt($salt)
+    {
+        $this->salt = $salt;
+        
+        return $this;
+    }
+    
+    /**
+     * @return String
+     */
+    public function getGender()
+    {
+        return $this->gender;
+    }
+    
+    /**
+     * @param String $gender
+     *
+     * @return User
+     */
+    public function setGender($gender)
+    {
+        $this->gender = $gender;
+        
+        return $this;
+    }
+    
+    /**
+     * @return boolean
+     */
+    public function isActive()
+    {
+        return $this->is_active;
+    }
+    
+    /**
+     * @param boolean $is_active
+     *
+     * @return User
+     */
+    public function setIsActive($is_active)
+    {
+        $this->is_active = $is_active;
+        
+        return $this;
+    }
+    
+    /**
+     * @return String
+     */
+    public function getDisplayName()
+    {
+        return $this->display_name;
+    }
+    
+    /**
+     * @param String $display_name
+     *
+     * @return User
+     */
+    public function setDisplayName($display_name)
+    {
+        $this->display_name = $display_name;
         
         return $this;
     }

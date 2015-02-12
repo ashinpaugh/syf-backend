@@ -1,99 +1,98 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: ashinpaugh
- * Date: 2/8/15
- * Time: 10:21 AM
- */
 
 namespace Moop\Bundle\HealthBundle\Entity;
+
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="Moop\Bundle\HealthBundle\Entity\Repository\SchoolRepository")
+ * @ORM\Entity()
  * @ORM\HasLifecycleCallbacks()
- * @ORM\Table(name="school", indexes={
- *  @ORM\Index(name="idx_initials", columns={"initials"})
+ * @ORM\Table(name="`group`", indexes={
+ *  @ORM\Index(name="idx_name", columns={"name"})
  * })
  */
-class School extends BaseEntity implements \Serializable
+class Group extends BaseEntity
 {
     /**
-     * @ORM\OneToMany(targetEntity="User", mappedBy="school")
-     * 
+     * @ORM\ManyToMany(targetEntity="User", inversedBy="groups")
      * @var User[]
      */
-    protected $patrons;
+    protected $members;
     
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer")
-     * 
      * @var Integer
      */
     protected $id;
     
     /**
      * @ORM\Column(type="string")
-     * 
      * @var String
      */
     protected $name;
     
     /**
-     * @ORM\Column(type="string")
-     * 
-     * @var String
+     * @ORM\Column(type="datetime")
+     * @var \DateTime
      */
-    protected $initials;
+    protected $date_created;
+    
     
     /**
      * 
      */
     public function __construct()
     {
-        $this->patrons = new ArrayCollection();
+        $this->members      = new ArrayCollection();
+        $this->date_created = new \DateTime();
     }
     
+    /**
+     * {@inheritdoc}
+     */
     protected function getSerializableProperties()
     {
         return [
             'id',
             'name',
-            'initials',
+            'date_created',
         ];
     }
     
     /**
      * @return User[]
      */
-    public function getPatrons()
+    public function getMembers()
     {
-        return $this->patrons;
+        return $this->members;
     }
     
     /**
-     * @param User $patron
+     * @param User[] $members
      *
-     * @return School
+     * @return Group
      */
-    public function addPatron($patron)
+    public function setMembers($members)
     {
-        $this->patrons->add($patron);
+        $this->members = $members;
+        
         return $this;
     }
     
     /**
-     * @param User[] $patron
+     * @param User $user
      *
-     * @return School
+     * @return $this
      */
-    public function setPatrons($patrons)
+    public function addMember(User $user)
     {
-        $this->patrons->add($patrons);
+        $this->members->add($user);
+        $user->addGroup($this);
+        
         return $this;
     }
     
@@ -108,7 +107,7 @@ class School extends BaseEntity implements \Serializable
     /**
      * @param int $id
      *
-     * @return School
+     * @return Group
      */
     public function setId($id)
     {
@@ -128,7 +127,7 @@ class School extends BaseEntity implements \Serializable
     /**
      * @param String $name
      *
-     * @return School
+     * @return Group
      */
     public function setName($name)
     {
@@ -138,24 +137,23 @@ class School extends BaseEntity implements \Serializable
     }
     
     /**
-     * @return String
+     * @return \DateTime
      */
-    public function getInitials()
+    public function getDateCreated()
     {
-        return $this->initials;
+        return $this->date_created;
     }
     
     /**
-     * @param String $initials
+     * @param \DateTime $date_created
      *
-     * @return School
+     * @return Group
      */
-    public function setInitials($initials)
+    public function setDateCreated($date_created)
     {
-        $this->initials = $initials;
+        $this->date_created = $date_created;
         
         return $this;
     }
-    
     
 }

@@ -3,6 +3,7 @@
 namespace Moop\Bundle\HealthBundle\Command;
 
 
+use Moop\Bundle\HealthBundle\Entity\Group;
 use Moop\Bundle\HealthBundle\Entity\School;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -26,6 +27,7 @@ class SetupCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->createSchools();
+        $this->createDefaultGroups();
     }
     
     private function createSchools()
@@ -47,6 +49,19 @@ class SetupCommand extends ContainerAwareCommand
         $manager = $this->getContainer()->get('doctrine.orm.default_entity_manager');
         $manager->persist($ou_school);
         $manager->persist($umn_school);
+        $manager->flush();
+    }
+    
+    private function createDefaultGroups()
+    {
+        $group = new Group();
+        
+        $group
+            ->setName('Alpha')
+        ;
+        
+        $manager = $this->getContainer()->get('doctrine.orm.default_entity_manager');
+        $manager->persist($group);
         $manager->flush();
     }
 }

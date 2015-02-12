@@ -1,5 +1,29 @@
 services:
     moop.health.kernel.listener:
-        class: Moop\Bundle\HealthBundle\EventListener\ControllerListener
+        class: Moop\Bundle\HealthBundle\EventListener\CORSListener
+        arguments: [ "@serializer" ]
         tags:
             - { name: kernel.event_listener, event: kernel.view, method: onKernelView, priority: 10 }
+            - { name: kernel.event_listener, event: kernel.request, method: onRequest }
+    
+    moop.fat_secret.user.service:
+        class:     Moop\Bundle\HealthBundle\Service\UserService
+        arguments: [ "@doctrine.orm.entity_manager", "@moop.fat_secret.api", "@security.encoder_factory" ]
+    
+    #moop.fat_secret.serialize.circular_ref_handler:
+        #class: Moop\Bundle\HealthBundle\Serialize\CircularReferenceNormalizer
+        #arguments: [ @serializer ]
+        
+    
+    moop.fat_secret.serialize.normalize:
+        class: Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer
+        #calls:
+            #- [setSerializer, ["@serializer"]]
+            #- [setCircularReferenceHandler, [["@moop.fat_secret.serialize.circular_ref_handler", "ref"]]]
+        tags:
+            - name: serializer.normalizer
+            
+    moop.routing.loader:
+        class: Moop\Bundle\HealthBundle\Routing\MoopRouteLoader
+        tags:
+            - { name: routing.loader }
