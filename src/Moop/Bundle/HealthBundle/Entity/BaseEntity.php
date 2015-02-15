@@ -22,6 +22,7 @@ abstract class BaseEntity implements \Serializable, \JsonSerializable
     {
         $properties = [];
         foreach ($this->getSerializableProperties() as $name) {
+            //echo "$name: $this->$name\n";
             $properties[$name] = $this->$name;
         }
         
@@ -54,5 +55,10 @@ abstract class BaseEntity implements \Serializable, \JsonSerializable
         foreach ($this->getSerializableProperties() as $name) {
             $this->$name = array_shift($values);
         }
+    }
+    
+    private function serializeCollection($property)
+    {
+        
     }
 }

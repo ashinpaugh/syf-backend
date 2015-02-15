@@ -7,6 +7,7 @@ use Moop\Bundle\HealthBundle\Entity\User;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\SecurityContext;
 
 /**
  * @Route("/account")
@@ -57,15 +58,33 @@ class AccountController extends BaseController
         }
         
         $service
-            ->createPasswordHash($user, $request->get('password'))
             ->setFatOAuthTokens($user)
+            ->createPasswordHash($user, $request->get('password'))
         ;
+        
+        //$this->getFatAPI()->
         
         $this->getDoctrine()->persist($user);
         $this->getDoctrine()->flush();
         
         return [
             'user_id' => $user->getId(),
+        ];
+    }
+    
+    /**
+     * @Route("", name="account_general")
+     * @Method({"GET"})
+     */
+    public function getAction(SecurityContext $security)
+    {
+        /* @var User $user */
+        $user = $security->getToken()->getUser();
+        
+        return [
+            'calories' => 0,
+            'steps'    => 0,
+            'netCal'   => 0,
         ];
     }
 }

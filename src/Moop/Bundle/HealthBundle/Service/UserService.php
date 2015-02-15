@@ -42,6 +42,18 @@ class UserService implements UserProviderInterface
         $this->encoder_factory = $encoderFactory;
     }
     
+    public function getUser($username, $password = null)
+    {
+        if ($password) {
+            $password = $this->encryptPassword($username);
+        }
+        
+        return $this->getRepository()->findOneBy(array_filter([
+            'username' => $username,
+            'password' => $password,
+        ]));
+    }
+    
     /**
      * @param String  $username
      * @param String  $email
@@ -132,15 +144,35 @@ class UserService implements UserProviderInterface
     public function createPasswordHash(User $user, $password)
     {
         $generator = new SecureRandom();
-        $new_salt  = $generator->nextBytes(10);
-        $user->setSalt(base64_encode($new_salt));
-
-        $encoder = $this->encoder_factory->getEncoder($user);
-        $user->setPassword(
-            $encoder->encodePassword($password, $user->getSalt())
-        );
-
-        return $this;
+        $salt      = base64_encode($generator->nextBytes(10));
+        $password  = $this->getEncoder($user)->encodePassword($password, $salt);
+        
+        $user->setSalt($salt)->setPassword($password);
+        
+        return $password;
+    }
+    
+    /**
+     * @param String      $password
+     * @param null|String $salt
+     *
+     * @return string
+     */
+    public function encryptPassword($password, $salt = null)
+    {
+        return $this->getEncoder()->encodePassword($password, $salt);
+    }
+    
+    /**
+     * Return the password encoder for the specified user class.
+     * 
+     * @param UserInterface|String $user
+     *
+     * @return \Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface
+     */
+    private function getEncoder($user = 'Moop\Bundle\HealthBundle\Entity\User')
+    {
+        return $this->encoder_factory->getEncoder($user);
     }
     
     
@@ -168,6 +200,7 @@ class UserService implements UserProviderInterface
      */
     public function loadUserByUsername($username)
     {
+        print_r(['loaduser' => $username]);
         $user = $this->getRepository()->findOneBy([
             'username' => $username,
         ]);

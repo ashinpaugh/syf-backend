@@ -1,19 +1,20 @@
 services:
     moop.health.kernel.listener:
         class: Moop\Bundle\HealthBundle\EventListener\CORSListener
-        arguments: [ "@serializer" ]
+        arguments: [ "@security.context", "@serializer", "@logger", "@moop.fat_secret.cors.response_manager" ]
         tags:
             - { name: kernel.event_listener, event: kernel.view, method: onKernelView, priority: 10 }
             - { name: kernel.event_listener, event: kernel.request, method: onRequest }
+            - { name: kernel.event_listener, event: kernel.response, method: onResponse }
+    
+    moop.fat_secret.cors.response_manager:
+        class: Moop\Bundle\HealthBundle\Service\ResponseManager
+        arguments:
+            - "@router"
     
     moop.fat_secret.user.service:
         class:     Moop\Bundle\HealthBundle\Service\UserService
         arguments: [ "@doctrine.orm.entity_manager", "@moop.fat_secret.api", "@security.encoder_factory" ]
-    
-    #moop.fat_secret.serialize.circular_ref_handler:
-        #class: Moop\Bundle\HealthBundle\Serialize\CircularReferenceNormalizer
-        #arguments: [ @serializer ]
-        
     
     moop.fat_secret.serialize.normalize:
         class: Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer
@@ -22,8 +23,38 @@ services:
             #- [setCircularReferenceHandler, [["@moop.fat_secret.serialize.circular_ref_handler", "ref"]]]
         tags:
             - name: serializer.normalizer
-            
+
     moop.routing.loader:
         class: Moop\Bundle\HealthBundle\Routing\MoopRouteLoader
         tags:
             - { name: routing.loader }
+    
+    moop.fat_secret.listener.security.authentication:
+        class: Moop\Bundle\HealthBundle\EventListener\SecurityListener
+        arguments:
+            - "@monolog.logger.profiler"
+
+    moop.fat_secret.security.user.authenticator.api:
+        class: Moop\Bundle\HealthBundle\Security\ApiAuthenticator
+        arguments:
+            - ""
+            - "@security.password_encoder"
+            - "@logger"
+    
+    moop.fat_secret.security.firewall.api:
+        class: Moop\Bundle\HealthBundle\Security\Firewall\ApiListener
+        arguments: [ @security.context, @security.authentication.manager, 'api' ]
+    
+    moop.fat_secret.security.provider.api:
+        class: Moop\Bundle\HealthBundle\Security\Authentication\Provider\ApiProvider
+        arguments:
+            - "@moop.fat_secret.user.service"
+            - "@security.password_encoder"
+            - "%moop.user.class%"
+        
+    
+    moop.fat_secret.security.factory.api:
+        class: Moop\Bundle\HealthBundle\DependencyInjection\Security\Factory\ApiFactory
+        calls:
+            - [ setListenerId, ["moop.fat_secret.security.firewall.api"] ]
+            - [ setProviderId, ["moop.fat_secret.security.provider.api"] ]

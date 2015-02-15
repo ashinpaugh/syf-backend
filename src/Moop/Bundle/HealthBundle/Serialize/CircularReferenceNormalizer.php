@@ -22,6 +22,7 @@ class CircularReferenceNormalizer
     
     public function ref($obj)
     {
-        return $this->serializer->encode($obj, 'json');
+        echo get_class($obj);
+        //return $this->serializer->encode($obj, 'json');
     }
 }

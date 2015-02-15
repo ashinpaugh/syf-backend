@@ -7,3 +7,9 @@
 moop_router:
     resource: .
     type:     moop_loader
+
+#login_verify:
+#    path: /security/verify
+
+#logout:
+#    path: /logout

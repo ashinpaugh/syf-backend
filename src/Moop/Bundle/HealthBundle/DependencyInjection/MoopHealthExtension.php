@@ -24,6 +24,7 @@ class MoopHealthExtension extends Extension
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
+        $loader->load('parameters.yml');
         
         $container->setParameter('moop.health.api.version', $config['api_version']);
     }
