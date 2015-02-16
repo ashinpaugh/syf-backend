@@ -4,6 +4,7 @@ namespace Moop\Bundle\HealthBundle\Service;
 
 
 use Doctrine\ORM\EntityManager;
+use Monolog\Logger;
 use Moop\Bundle\FatSecretBundle\API\FatSecret;
 use Moop\Bundle\HealthBundle\Entity\User;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
@@ -32,29 +33,20 @@ class UserService implements UserProviderInterface
     protected $encoder_factory;
     
     /**
+     * @var Logger
+     */
+    protected $logger;
+    
+    /**
      * @param EntityManager $manager
      * @param FatSecret     $api
      */
-    public function __construct(EntityManager $manager, FatSecret $api, EncoderFactoryInterface $encoderFactory)
+    public function __construct(EntityManager $manager, FatSecret $api, EncoderFactoryInterface $encoderFactory, Logger $logger)
     {
         $this->doctrine        = $manager;
         $this->fs_api          = $api;
         $this->encoder_factory = $encoderFactory;
-    }
-    
-    /**
-     * @param String  $username
-     * @param String  $email
-     * @param Integer $student_id
-     *
-     * @return bool
-     */
-    public function checkOriginalCredentials($username, $email, $student_id)
-    {
-        return !$this->isUsernameTaken($username)
-            && !$this->isEmailTaken($email)
-            && !$this->isStudentIDTaken($student_id)
-        ;
+        $this->logger          = $logger;
     }
     
     /**
@@ -79,7 +71,40 @@ class UserService implements UserProviderInterface
         return $this;
     }
     
+    /**
+     * Get a user by their username.
+     * 
+     * @param String $username
+     * @param String $password
+     *
+     * @return null|object
+     */
+    public function getUser($username, $password = null)
+    {
+        if ($password) {
+            $password = $this->encryptPassword($username);
+        }
+        
+        return $this->getRepository()->findOneBy(array_filter([
+            'username' => $username,
+            'password' => $password,
+        ]));
+    }
     
+    /**
+     * @param String  $username
+     * @param String  $email
+     * @param Integer $student_id
+     *
+     * @return bool
+     */
+    public function checkOriginalCredentials($username, $email, $student_id)
+    {
+        return !$this->isUsernameTaken($username)
+            && !$this->isEmailTaken($email)
+            && !$this->isStudentIDTaken($student_id)
+        ;
+    }
     
     /**
      * @param String $username
@@ -132,15 +157,35 @@ class UserService implements UserProviderInterface
     public function createPasswordHash(User $user, $password)
     {
         $generator = new SecureRandom();
-        $new_salt  = $generator->nextBytes(10);
-        $user->setSalt(base64_encode($new_salt));
-
-        $encoder = $this->encoder_factory->getEncoder($user);
-        $user->setPassword(
-            $encoder->encodePassword($password, $user->getSalt())
-        );
-
-        return $this;
+        $salt      = base64_encode($generator->nextBytes(10));
+        $password  = $this->getEncoder($user)->encodePassword($password, $salt);
+        
+        $user->setSalt($salt)->setPassword($password);
+        
+        return $password;
+    }
+    
+    /**
+     * @param String      $password
+     * @param null|String $salt
+     *
+     * @return string
+     */
+    public function encryptPassword($password, $salt = null)
+    {
+        return $this->getEncoder()->encodePassword($password, $salt);
+    }
+    
+    /**
+     * Return the password encoder for the specified user class.
+     * 
+     * @param UserInterface|String $user
+     *
+     * @return \Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface
+     */
+    private function getEncoder($user = 'Moop\Bundle\HealthBundle\Entity\User')
+    {
+        return $this->encoder_factory->getEncoder($user);
     }
     
     
@@ -169,7 +214,7 @@ class UserService implements UserProviderInterface
     public function loadUserByUsername($username)
     {
         $user = $this->getRepository()->findOneBy([
-            'username' => $username,
+            'username' => $username
         ]);
         
         if ($user instanceof User) {

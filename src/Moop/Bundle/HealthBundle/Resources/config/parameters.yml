@@ -1,0 +1,2 @@
+parameters:
+    moop.user.class: Moop\Bundle\HealthBundle\Entity\User

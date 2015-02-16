@@ -16,8 +16,16 @@ security:
 
     # http://symfony.com/doc/current/book/security.html#where-do-users-come-from-user-providers
     providers:
-         main:
-            id: moop.fat_secret.user.service
+        #chain_provider:
+        #    chain:
+        #        providers: [ apikey, main ]
+        
+        api:
+            #id: moop.fat_secret.user.service
+            id: moop.fat_secret.security.provider.api
+        #main:
+            #entity: { class: MoopHealthBundle:User, property: username }
+        #    id: moop.fat_secret.user.service
 
     # the main part of the security, where you can set up firewalls
     # for specific sections of your app
@@ -26,25 +34,33 @@ security:
         dev:
             pattern:  ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        # the login page has to be accessible for everybody
-        demo_login:
-            pattern:  ^/demo/secured/login$
-            security: false
 
-        # secures part of the application
-        demo_secured_area:
-            pattern:    ^/demo/secured/
-            # it's important to notice that in this case _demo_security_check and _demo_login
-            # are route names and that they are specified in the AcmeDemoBundle
-            form_login:
-                check_path: _demo_security_check
-                login_path: _demo_login
-            logout:
-                path:   _demo_logout
-                target: _demo
+        cors_options:
+            pattern:   .*
+            methods:   [OPTIONS]
+            security:  false
+            stateless: true
+            #context:   general
+        
+        null_sec:
+            context: moop_general
+            methods: [GET]
+            pattern: ^/v1/(food|school|group)+
+            security: false
+        
+        #login:
+        #    pattern:  ./v1/login*
+        #    security: false
+        
+        general:
+            context: moop_general
+            methods:   [GET, POST, PUT, PATCH, DELETE]
+            stateless: true
+            #provider:  api
+            
             #anonymous: ~
-            #http_basic:
-            #    realm: "Secured Demo Area"
+            logout:    ~
+            api:       ~
 
     # with these settings you can restrict or allow access for different parts
     # of your application based on roles, ip, host or methods

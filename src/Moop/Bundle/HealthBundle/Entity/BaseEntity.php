@@ -2,9 +2,11 @@
 
 namespace Moop\Bundle\HealthBundle\Entity;
 
-
-use Doctrine\Common\Util\Debug;
-
+/**
+ * The base class for API entities.
+ * 
+ * @author Austin Shinpaugh
+ */
 abstract class BaseEntity implements \Serializable, \JsonSerializable
 {
     /**
@@ -15,13 +17,39 @@ abstract class BaseEntity implements \Serializable, \JsonSerializable
     protected abstract function getSerializableProperties();
     
     /**
+     * @return \String[]
+     */
+    protected function getHiddenApiParams()
+    {
+        return [];
+    }
+    
+    /**
+     * If there are values that should not be shared with a client API.
+     * 
+     * @return \String[]
+     */
+    protected function stripApiParams()
+    {
+        return array_diff(
+            $this->getSerializableProperties(),
+            $this->getHiddenApiParams()
+        );
+    }
+    
+    /**
      * Get the array of values to serialize.
+     * 
+     * @param Boolean $api_safe
+     * 
      * @return array
      */
-    private function getValueArr()
+    private function serializableValues($api_safe = false)
     {
+        $params     = $api_safe ? $this->stripApiParams() : $this->getSerializableProperties();
         $properties = [];
-        foreach ($this->getSerializableProperties() as $name) {
+        
+        foreach ($params as $name) {
             $properties[$name] = $this->$name;
         }
         
@@ -33,7 +61,7 @@ abstract class BaseEntity implements \Serializable, \JsonSerializable
      */
     public function jsonSerialize()
     {
-        return $this->getValueArr();
+        return $this->serializableValues(true);
     }
     
     /**
@@ -41,7 +69,7 @@ abstract class BaseEntity implements \Serializable, \JsonSerializable
      */
     public function serialize()
     {
-        return serialize($this->getValueArr());
+        return serialize($this->serializableValues());
     }
     
     /**
