@@ -1,15 +1,3 @@
-#moop_health:
-#    resource: "@MoopHealthBundle/Controller/"
-#    type:     annotation
-#    prefix:   /v1
-#    host:     "api.%domain%"
-
-moop_router:
-    resource: .
-    type:     moop_loader
-
-#login_verify:
-#    path: /security/verify
-
-#logout:
-#    path: /logout
+moop_health:
+    resource: @MoopHealthBundle/Controller/
+    type:     api_format

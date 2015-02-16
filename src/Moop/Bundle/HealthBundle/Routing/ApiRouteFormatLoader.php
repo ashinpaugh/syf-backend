@@ -6,18 +6,18 @@ use Symfony\Component\Config\Loader\Loader;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 
-class MoopRouteLoader extends Loader
+class ApiRouteFormatLoader extends Loader
 {
     protected $loaded = false;
     
     public function load($resource, $type = null)
     {
         if ($this->loaded) {
-            throw new \RuntimeException('Moop loader fired twice.');
+            throw new \RuntimeException('API Format Loader fired twice.');
         }
         
         $collection = new RouteCollection();
-        $resource   = '@MoopHealthBundle/Controller/';
+        //$resource   = '@MoopHealthBundle/Controller/';
 
         $routes = $this->import($resource, 'annotation');
         
@@ -41,6 +41,6 @@ class MoopRouteLoader extends Loader
 
     public function supports($resource, $type = null)
     {
-        return $type === 'moop_loader';
+        return $type === 'api_format';
     }
 }

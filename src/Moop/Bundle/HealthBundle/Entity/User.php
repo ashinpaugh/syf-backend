@@ -205,6 +205,19 @@ class User extends BaseEntity implements UserInterface
     }
     
     /**
+     * {@inheritDoc}
+     */
+    protected function getHiddenApiParams()
+    {
+        return [
+            'password',
+            'salt',
+            'oauth_token',
+            'oauth_token_secret',
+        ];
+    }
+    
+    /**
      * @return School
      */
     public function getSchool()

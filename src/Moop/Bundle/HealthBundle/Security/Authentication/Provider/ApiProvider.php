@@ -2,10 +2,13 @@
 
 namespace Moop\Bundle\HealthBundle\Security\Authentication\Provider;
 
+use Doctrine\Common\Util\Debug;
+use Moop\Bundle\HealthBundle\Security\Token\ApiUserToken;
 use Moop\Bundle\HealthBundle\Service\UserService;
+use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
-use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
-use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
@@ -14,7 +17,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
  * 
  * @author Austin Shinpaugh
  */
-class ApiProvider implements UserProviderInterface
+class ApiProvider implements AuthenticationProviderInterface
 {
     /**
      * @var UserService
@@ -34,11 +37,11 @@ class ApiProvider implements UserProviderInterface
     /**
      * Construct.
      * 
-     * @param UserService         $service
-     * @param UserPasswordEncoder $encoder
-     * @param String              $user_cls
+     * @param UserProviderInterface $service
+     * @param UserPasswordEncoder   $encoder
+     * @param String                $user_cls
      */
-    public function __construct(UserService $service, UserPasswordEncoder $encoder, $user_cls)
+    public function __construct(UserProviderInterface $service, UserPasswordEncoder $encoder, $user_cls)
     {
         $this->user_service = $service;
         $this->encoder      = $encoder;
@@ -48,30 +51,67 @@ class ApiProvider implements UserProviderInterface
     /**
      * {@inheritDoc}
      */
-    public function loadUserByUsername($username)
+    public function authenticate(TokenInterface $token)
     {
-        if (!$user = $this->user_service->getUser($username)) {
-            throw new UsernameNotFoundException;
+        if ($token->getCredentials()) {
+            return $this->loadUserByCredentials($token);
         }
         
-        return new $user;
+        return $this->loadUserByHeader($token);
     }
     
     /**
-     * The user was reloaded in {@see static::loadUserByUsername}
+     * {@inheritDoc}
+     */
+    public function supports(TokenInterface $token)
+    {
+        return $token instanceof ApiUserToken;
+    }
+    
+    /**
      * 
-     * {@inheritDoc}
+     * 
+     * @param TokenInterface $token
+     *
+     * @return ApiUserToken
      */
-    public function refreshUser(UserInterface $user)
+    protected function loadUserByCredentials(TokenInterface $token)
     {
-        throw new UnsupportedUserException();
+        if (!$user = $this->getProvider()->loadUserByUsername($token->getUsername())) {
+            throw new AuthenticationException('Username not found.');
+        }
+        
+        if (!$this->encoder->isPasswordValid($user, $token->getCredentials())) {
+            throw new AuthenticationException('Password does not match.');
+        }
+        
+        return new ApiUserToken($user, $user->getPassword(), 'api', $user->getRoles());
     }
     
     /**
-     * {@inheritDoc}
+     * 
+     * 
+     * @param TokenInterface $token
+     *
+     * @return ApiUserToken
      */
-    public function supportsClass($class)
+    protected function loadUserByHeader(TokenInterface $token)
     {
-        return $this->user_cls === $class;
+        $username = base64_decode($token->getUsername());
+        $user     = $this->getProvider()->loadUserByUsername($username);
+        
+        if (get_class($user) !== $this->user_cls) {
+            throw new AuthenticationException('Invalid credentials sent in header.');
+        }
+        
+        return new ApiUserToken($user, $user->getPassword(), 'api', $user->getRoles());
+    }
+    
+    /**
+     * @return UserService
+     */
+    protected function getProvider()
+    {
+        return $this->user_service;
     }
 }

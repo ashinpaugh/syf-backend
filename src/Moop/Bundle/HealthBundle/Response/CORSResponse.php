@@ -5,7 +5,12 @@ namespace Moop\Bundle\HealthBundle\Response;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
-class CORSResponse extends Response
+/**
+ * The basic CORS response class that sets common required headers.
+ * 
+ * @author Austin Shinpaugh
+ */
+class CorsResponse extends Response
 {
     protected $cors_headers;
     
@@ -17,8 +22,7 @@ class CORSResponse extends Response
         $this->cors_headers = new ResponseHeaderBag();
         
         parent::__construct($content, $status, array_merge([
-            'Access-Control-Allow-Origin'      => '*',
-            'Access-Control-Allow-Credentials' => 'true',
+            'Access-Control-Allow-Origin' => '*',
         ], $headers));
     }
     
@@ -31,7 +35,6 @@ class CORSResponse extends Response
         $titles = implode(', ', array_keys($values));
         
         $this->headers->add(array_merge($values, [
-            //'Content-Type'                  => 'text/plain; charset=utf-8',
             'Access-Control-Expose-Headers' => $titles,
         ]));
     }

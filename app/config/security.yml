@@ -20,13 +20,12 @@ security:
         #    chain:
         #        providers: [ apikey, main ]
         
-        #apikey:
-            #id: moop.fat_secret.security.user.provider.apikey
         api:
+            #id: moop.fat_secret.user.service
             id: moop.fat_secret.security.provider.api
-        main:
+        #main:
             #entity: { class: MoopHealthBundle:User, property: username }
-            id: moop.fat_secret.user.service
+        #    id: moop.fat_secret.user.service
 
     # the main part of the security, where you can set up firewalls
     # for specific sections of your app
@@ -35,60 +34,36 @@ security:
         dev:
             pattern:  ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        # the login page has to be accessible for everybody
-        demo_login:
-            pattern:  ^/demo/secured/login$
-            security: false
 
         cors_options:
-            pattern: .*
-        #    #context: general
-            methods: [OPTIONS]
-            security: false
+            pattern:   .*
+            methods:   [OPTIONS]
+            security:  false
             stateless: true
-            #methodses
+            #context:   general
         
-        #null_sec:
-        #    context: moop_general
-        #    methods: [GET]
-        #    pattern: ^/v1/(food|school|group)+
-        #    security: false
+        null_sec:
+            context: moop_general
+            methods: [GET]
+            pattern: ^/v1/(food|school|group)+
+            security: false
         
         #login:
-        #    pattern:  ^/v1/login*
+        #    pattern:  ./v1/login*
         #    security: false
         
         general:
             context: moop_general
             methods:   [GET, POST, PUT, PATCH, DELETE]
-            #stateless: true
-            #provider:  main
+            stateless: true
+            #provider:  api
             
             #anonymous: ~
             logout:    ~
             api:       ~
-                
-                #authenticator: moop.fat_secret.security.user.authenticator.simple
-                #require_previous_session: false
-                #authenticator: moop.fat_secret.security.user.authenticator.apikey
-            
-            #form_login:
-            #    login_path:  /
-            #    check_path: login_verify
-                
-            #    use_forward: true
-                
-                #default_target_path: account_general
-            #    require_previous_session: false
-            
-            #simple_preauth:
-                #provider:      moop.fat_secret.security.user.provider.apikey
-                #provider:      apikey
-            #    authenticator: moop.fat_secret.security.user.authenticator.apikey
 
     # with these settings you can restrict or allow access for different parts
     # of your application based on roles, ip, host or methods
     # http://symfony.com/doc/current/cookbook/security/access_control.html
     access_control:
         #- { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https }
-        #- { path: login_verify, roles: IS_AUTHENTICATED_ANONYMOUSLY }

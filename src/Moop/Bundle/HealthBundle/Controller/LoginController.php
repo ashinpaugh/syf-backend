@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: ashinpaugh
- * Date: 2/12/15
- * Time: 12:02 AM
- */
 
 namespace Moop\Bundle\HealthBundle\Controller;
 

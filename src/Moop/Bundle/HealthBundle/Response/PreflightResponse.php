@@ -2,11 +2,15 @@
 
 namespace Moop\Bundle\HealthBundle\Response;
 
-
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
-class PreflightResponse extends Response
+/**
+ * Handles common headers that need to be set to properly handle the preflight
+ * requests.
+ * 
+ * @author Austin Shinpaugh
+ */
+class PreflightResponse extends CorsResponse
 {
     /**
      * {@inheritdoc}
@@ -31,7 +35,7 @@ class PreflightResponse extends Response
             'Access-Control-Allow-Origin'      => '*',
             'Access-Control-Allow-Headers'     => 'Content-Type, X-AUTH-TOKEN',
             'Access-Control-Allow-Methods'     => 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-            'Access-Control-Allow-Credentials' => 'true',
+            //'Access-Control-Allow-Credentials' => 'true',
         ]);
     }
 }

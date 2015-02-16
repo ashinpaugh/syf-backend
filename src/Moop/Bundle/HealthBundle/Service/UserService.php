@@ -4,6 +4,7 @@ namespace Moop\Bundle\HealthBundle\Service;
 
 
 use Doctrine\ORM\EntityManager;
+use Monolog\Logger;
 use Moop\Bundle\FatSecretBundle\API\FatSecret;
 use Moop\Bundle\HealthBundle\Entity\User;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
@@ -32,16 +33,52 @@ class UserService implements UserProviderInterface
     protected $encoder_factory;
     
     /**
+     * @var Logger
+     */
+    protected $logger;
+    
+    /**
      * @param EntityManager $manager
      * @param FatSecret     $api
      */
-    public function __construct(EntityManager $manager, FatSecret $api, EncoderFactoryInterface $encoderFactory)
+    public function __construct(EntityManager $manager, FatSecret $api, EncoderFactoryInterface $encoderFactory, Logger $logger)
     {
         $this->doctrine        = $manager;
         $this->fs_api          = $api;
         $this->encoder_factory = $encoderFactory;
+        $this->logger          = $logger;
     }
     
+    /**
+     * @param User $user
+     *
+     * @return $this
+     */
+    public function setFatOAuthTokens(User $user)
+    {
+        $result = $this->getApi()->createProfile($user->getUsername());
+        
+        if (!array_key_exists('auth_token', $result)) {
+            // The account already exists on FatSecret - local db was probably wiped.
+            $result = $this->getApi()->getAuthTokenInfo($user->getUsername());
+        }
+        
+        $user
+            ->setOauthToken($result['auth_token'])
+            ->setOauthTokenSecret($result['auth_secret'])
+        ;
+        
+        return $this;
+    }
+    
+    /**
+     * Get a user by their username.
+     * 
+     * @param String $username
+     * @param String $password
+     *
+     * @return null|object
+     */
     public function getUser($username, $password = null)
     {
         if ($password) {
@@ -68,30 +105,6 @@ class UserService implements UserProviderInterface
             && !$this->isStudentIDTaken($student_id)
         ;
     }
-    
-    /**
-     * @param User $user
-     *
-     * @return $this
-     */
-    public function setFatOAuthTokens(User $user)
-    {
-        $result = $this->getApi()->createProfile($user->getUsername());
-        
-        if (!array_key_exists('auth_token', $result)) {
-            // The account already exists on FatSecret - local db was probably wiped.
-            $result = $this->getApi()->getAuthTokenInfo($user->getUsername());
-        }
-        
-        $user
-            ->setOauthToken($result['auth_token'])
-            ->setOauthTokenSecret($result['auth_secret'])
-        ;
-        
-        return $this;
-    }
-    
-    
     
     /**
      * @param String $username
@@ -200,9 +213,8 @@ class UserService implements UserProviderInterface
      */
     public function loadUserByUsername($username)
     {
-        print_r(['loaduser' => $username]);
         $user = $this->getRepository()->findOneBy([
-            'username' => $username,
+            'username' => $username
         ]);
         
         if ($user instanceof User) {

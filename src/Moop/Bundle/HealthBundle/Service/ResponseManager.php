@@ -3,7 +3,7 @@
 namespace Moop\Bundle\HealthBundle\Service;
 
 
-use Moop\Bundle\HealthBundle\Response\CORSResponse;
+use Moop\Bundle\HealthBundle\Response\CorsResponse;
 use Moop\Bundle\HealthBundle\Response\PreflightResponse;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,9 +32,9 @@ class ResponseManager
      * @param int     $status
      * @param array   $headers
      *
-     * @return PreflightResponse|CORSResponse
+     * @return CorsResponse
      */
-    public function handleResponse(Request $request, $content = '', $status = 200, array $headers = [])
+    public function handle(Request $request, $content = '', $status = 200, array $headers = [])
     {
         $this->request = $request;
         
@@ -42,11 +42,18 @@ class ResponseManager
             return $this->getPreflightResponse($request, $content, $status);
         }
         
-        return CORSResponse::create($content, $status, array_merge([
+        return CorsResponse::create($content, $status, array_merge([
             'Access-Control-Allow-Origin'  => $this->getOrigin(),
         ], $headers));
     }
     
+    /**
+     * @param Request $request
+     * @param String  $content
+     * @param Integer $status
+     *
+     * @return $this
+     */
     protected function getPreflightResponse(Request $request, $content, $status)
     {
         $name    = $this->request->attributes->get('_route');
@@ -69,6 +76,9 @@ class ResponseManager
         return PreflightResponse::create($content, $status, $headers->allPreserveCase());
     }
     
+    /**
+     * @return string
+     */
     private function getOrigin()
     {
         return $this->request->headers->get('Origin');
