@@ -4,6 +4,7 @@ namespace Moop\Bundle\HealthBundle\EventListener;
 
 use Moop\Bundle\HealthBundle\Response\CorsResponse;
 use Moop\Bundle\HealthBundle\Service\ResponseManager;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
@@ -79,25 +80,24 @@ class CorsKernelListener
             return;
         }
         
-        if ($e->getRequest()->isMethod('OPTIONS')) {
-            $e->setResponse($this->manager->handle($e->getRequest()));
+        $request = $e->getRequest();
+        
+        // Handle the Preflight requests.
+        if ($request->isMethod('OPTIONS')) {
+            $e->setResponse($this->manager->handle($request));
             return;
         }
         
-        $request = $e->getRequest();
-        if ('json' === $request->getContentType() && $content = $request->getContent()) {
-            // Handle AngularJS service calls.
-            $params = json_decode($content, true);
-            
-            $request->isMethod('POST')
-                ? $request->request->add($params)
-                : $request->query->add($params)
-            ;
+        // Parse the request body for params that Symfony doesn't notice.
+        if ($this->handleAjaxRequest($request)) {
+            return;
         }
+        
+        // TODO: Remember what belonged here...
     }
     
     /**
-     * {@inheritdoc}
+     * Add the user token ID to the headers if a valid session was found.
      */
     public function onResponse(FilterResponseEvent $event)
     {
@@ -144,5 +144,34 @@ class CorsKernelListener
             $content,
             200
         );
+    }
+    
+    /**
+     * Parses the Request body for JSON rather than the traditional query
+     * string found in the message body.
+     *
+     * Ths is useful when developing a SPA with a framework like AngularJS.
+     *
+     * @param Request $request
+     *
+     * @return bool
+     * @throws \HttpInvalidParamException
+     */
+    private function handleAjaxRequest(Request $request)
+    {
+        if ('json' !== $request->getContentType() || !$request->getContent()) {
+            return false;
+        }
+        
+        if (!$params = json_decode($request->getContent(), true)) {
+            throw new \HttpInvalidParamException(
+                'Unable to decode request params'
+            );
+        }
+        
+        $bag = $request->isMethod('POST') ? $request->request : $request->query;
+        $bag->add($params);
+        
+        return true;
     }
 }

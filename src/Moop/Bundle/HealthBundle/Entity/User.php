@@ -2,8 +2,12 @@
 
 namespace Moop\Bundle\HealthBundle\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Moop\Bundle\FatSecretBundle\API\FatUserInterface;
+use Moop\Bundle\FatSecretBundle\API\OAuthConsumerInterface;
+use Moop\Bundle\FatSecretBundle\Entity\OAuthProvider;
+use Moop\Bundle\FatSecretBundle\Entity\OAuthToken;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -12,11 +16,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
  *  @ORM\Index(name="idx_student_id", columns={"student_id"}),
  *  @ORM\Index(name="idx_email", columns={"email"}),
  *  @ORM\Index(name="idx_name", columns={"first_name", "last_name"}),
- *  @ORM\Index(name="idx_oauth", columns={"oauth_token", "oauth_token_secret"}),
  *  @ORM\Index(name="idx_user_type", columns={"type", "school_id"})
  * })
  */
-class User extends BaseEntity implements UserInterface
+class User extends BaseEntity implements UserInterface, FatUserInterface
 {
     const STUDENT = 0;
     const FACULTY = 1;
@@ -36,6 +39,25 @@ class User extends BaseEntity implements UserInterface
      * @var Group[]
      */
     protected $groups;
+    
+    /**
+     * @ORM\OneToMany(targetEntity="Goal", mappedBy="user")
+     * @var Goal[]
+     */
+    protected $goals;
+    
+    /**
+     * @ORM\ManyToMany(targetEntity="Moop\Bundle\FatSecretBundle\Entity\OAuthToken", cascade={"persist"})
+     * @ORM\JoinTable(name="users_oauth_tokens",
+     *    joinColumns={
+     *      @ORM\JoinColumn(name="user_id", referencedColumnName="id")},
+     *    inverseJoinColumns={
+     *      @ORM\JoinColumn(name="oauth_token_id", referencedColumnName="id", unique=true)
+     *    }
+     * )
+     * @var OAuthToken[]|ArrayCollection
+     */
+    protected $oauth_tokens;
     
     /**
      * @ORM\Id()
@@ -131,18 +153,6 @@ class User extends BaseEntity implements UserInterface
     protected $feature_set;
     
     /**
-     * @ORM\Column(type="string")
-     * @var String
-     */
-    protected $oauth_token;
-    
-    /**
-     * @ORM\Column(type="string")
-     * @var String
-     */
-    protected $oauth_token_secret;
-    
-    /**
      * @ORM\Column(type="boolean")
      * @var Boolean
      */
@@ -155,6 +165,7 @@ class User extends BaseEntity implements UserInterface
     {
         $this->is_active    = true;
         $this->groups       = new ArrayCollection();
+        $this->oauth_tokens = new ArrayCollection();
         $this->type         = static::STUDENT;
         $this->feature_set  = static::FULL_FEATURES;
         $this->date_created = new \DateTime();
@@ -166,7 +177,9 @@ class User extends BaseEntity implements UserInterface
      */
     public function getRoles()
     {
-        return ['ROLE_STUDENT'];
+        return static::STUDENT === $this->getType()
+            ? ['ROLE_STUDENT']
+            : ['ROLE_FACULTY'];
     }
     
     /**
@@ -174,6 +187,8 @@ class User extends BaseEntity implements UserInterface
      */
     public function eraseCredentials()
     {
+        $this->password = '';
+        $this->salt     = '';
     }
     
     /**
@@ -198,9 +213,6 @@ class User extends BaseEntity implements UserInterface
             'salt',
             'type',
             'is_active',
-            
-            'oauth_token',
-            'oauth_token_secret',
         ];
     }
     
@@ -212,8 +224,6 @@ class User extends BaseEntity implements UserInterface
         return [
             'password',
             'salt',
-            'oauth_token',
-            'oauth_token_secret',
         ];
     }
     
@@ -497,46 +507,6 @@ class User extends BaseEntity implements UserInterface
     /**
      * @return String
      */
-    public function getOauthToken()
-    {
-        return $this->oauth_token;
-    }
-    
-    /**
-     * @param String $oauth_token
-     *
-     * @return User
-     */
-    public function setOauthToken($oauth_token)
-    {
-        $this->oauth_token = $oauth_token;
-        
-        return $this;
-    }
-    
-    /**
-     * @return String
-     */
-    public function getOauthTokenSecret()
-    {
-        return $this->oauth_token_secret;
-    }
-    
-    /**
-     * @param String $oauth_token_secret
-     *
-     * @return User
-     */
-    public function setOauthTokenSecret($oauth_token_secret)
-    {
-        $this->oauth_token_secret = $oauth_token_secret;
-        
-        return $this;
-    }
-    
-    /**
-     * @return String
-     */
     public function getSalt()
     {
         return $this->salt;
@@ -614,5 +584,83 @@ class User extends BaseEntity implements UserInterface
         return $this;
     }
     
+    /**
+     * @return mixed
+     */
+    public function getGoals()
+    {
+        return $this->goals;
+    }
     
+    /**
+     * @param mixed $goals
+     *
+     * @return User
+     */
+    public function setGoals($goals)
+    {
+        $this->goals = $goals;
+        
+        return $this;
+    }
+    
+    
+    /**
+     * Get the OAuth token.
+     *
+     * @return OAuthToken[]
+     */
+    public function getOAuthTokens()
+    {
+        return $this->oauth_tokens;
+    }
+    
+    /**
+     * @return String
+     */
+    public function getOAuthToken($provider)
+    {
+        $name = $provider instanceof OAuthProvider
+            ? $provider->getName()
+            : $provider
+        ;
+        
+        return $this->oauth_tokens->get($name);
+    }
+    
+    /**
+     * Set the OAuth token.
+     *
+     * @param OAuthProvider $provider
+     * @param String        $token
+     * @param String        $secret
+     *
+     * @return $this
+     */
+    public function addOAuthToken(OAuthProvider $provider, $token, $secret)
+    {
+        $auth_token = new OAuthToken($provider, $token, $secret);
+        
+        $this->oauth_tokens->set($provider->getName(), $auth_token);
+        $provider->addToken($auth_token);
+        
+        return $this;
+    }
+    
+    /**
+     * Remove a token that's associated with a user.
+     *
+     * @param OAuthToken $token
+     *
+     * @return $this
+     */
+    public function removeOAuthToken(OAuthToken $token)
+    {
+        $provider = $token->getProvider();
+        $provider->removeToken($token);
+        
+        $this->oauth_tokens->remove($provider->getName());
+        
+        return $this;
+    }
 }

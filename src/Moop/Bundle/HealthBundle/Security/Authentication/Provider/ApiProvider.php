@@ -37,11 +37,11 @@ class ApiProvider implements AuthenticationProviderInterface
     /**
      * Construct.
      * 
-     * @param UserProviderInterface $service
-     * @param UserPasswordEncoder   $encoder
-     * @param String                $user_cls
+     * @param UserService         $service
+     * @param UserPasswordEncoder $encoder
+     * @param String              $user_cls
      */
-    public function __construct(UserProviderInterface $service, UserPasswordEncoder $encoder, $user_cls)
+    public function __construct(UserService $service, UserPasswordEncoder $encoder, $user_cls)
     {
         $this->user_service = $service;
         $this->encoder      = $encoder;
@@ -77,7 +77,7 @@ class ApiProvider implements AuthenticationProviderInterface
      */
     protected function loadUserByCredentials(TokenInterface $token)
     {
-        if (!$user = $this->getProvider()->loadUserByUsername($token->getUsername())) {
+        if (!$user = $this->getProvider()->getUser($token->getUsername())) {
             throw new AuthenticationException('Username not found.');
         }
         
@@ -98,7 +98,7 @@ class ApiProvider implements AuthenticationProviderInterface
     protected function loadUserByHeader(TokenInterface $token)
     {
         $username = base64_decode($token->getUsername());
-        $user     = $this->getProvider()->loadUserByUsername($username);
+        $user     = $this->getProvider()->getUser($username);
         
         if (get_class($user) !== $this->user_cls) {
             throw new AuthenticationException('Invalid credentials sent in header.');

@@ -28,7 +28,7 @@ class ResponseManager
     
     /**
      * @param Request $request
-     * @param         $content
+     * @param String  $content
      * @param int     $status
      * @param array   $headers
      *
@@ -60,20 +60,16 @@ class ResponseManager
         $route   = $this->router->getRouteCollection()->get($name);
         $methods = implode(', ', $route->getMethods());
         
-        $headers = new ResponseHeaderBag([
+        $headers = [
             'Access-Control-Allow-Origin'  => $this->getOrigin(),
             'Access-Control-Allow-Methods' => $methods,
-        ]);
+        ];
         
-        if ($request->headers->has('Access-Control-Request-Headers')) {
-            $headers->set(
-                'Access-Control-Allow-Headers',
-                $request->headers->get('Access-Control-Request-Headers')
-            );
+        if ($specific = $request->headers->get('Access-Control-Request-Headers')) {
+            $headers['Access-Control-Allow-Headers'] = $specific;
         }
         
-        // 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
-        return PreflightResponse::create($content, $status, $headers->allPreserveCase());
+        return PreflightResponse::create($content, $status, $headers);
     }
     
     /**

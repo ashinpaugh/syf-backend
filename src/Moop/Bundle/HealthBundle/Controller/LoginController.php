@@ -18,6 +18,13 @@ class LoginController extends BaseController
      */
     public function verifyAction()
     {
-        return $this->getUser();
+        $days = time() / 86400;
+        //$user = $this->container->get('security.context')->getToken();
+        //$api  = $this->getFatAPI()->setUserOAuthTokens($this->getUser());
+        
+        return [
+            'user_meta' => $this->getUser(),
+            //'food'      => $api->getFoodEntries(null, round($days))
+        ];
     }
 }

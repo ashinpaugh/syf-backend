@@ -17,6 +17,7 @@ class Group extends BaseEntity
 {
     /**
      * @ORM\ManyToMany(targetEntity="User", inversedBy="groups")
+     * 
      * @var User[]
      */
     protected $members;
@@ -25,6 +26,7 @@ class Group extends BaseEntity
      * @ORM\Id()
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer")
+     * 
      * @var Integer
      */
     protected $id;
@@ -43,10 +45,13 @@ class Group extends BaseEntity
     
     
     /**
+     * Constructor.
      * 
+     * @param String $name
      */
-    public function __construct()
+    public function __construct($name)
     {
+        $this->name         = $name;
         $this->members      = new ArrayCollection();
         $this->date_created = new \DateTime();
     }

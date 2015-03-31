@@ -76,10 +76,10 @@ class AccountController extends BaseController
      * @Route("", name="account_general")
      * @Method({"GET"})
      */
-    public function getAction(SecurityContext $security)
+    public function getAction()
     {
         /* @var User $user */
-        $user = $security->getToken()->getUser();
+        $user = $this->getUser();
         
         return [
             'calories' => 0,

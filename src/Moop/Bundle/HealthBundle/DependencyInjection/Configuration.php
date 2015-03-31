@@ -18,7 +18,7 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('moop_health');
+        $rootNode    = $treeBuilder->root('moop_health');
 
         $rootNode
             ->children()

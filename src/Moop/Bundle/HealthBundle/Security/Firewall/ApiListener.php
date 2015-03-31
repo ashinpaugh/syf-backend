@@ -62,12 +62,13 @@ class ApiListener implements ListenerInterface
         
         try {
             $this->attemptAuthentication($event->getRequest());
-            return;
         } catch (AuthenticationException $failed) {
-            $this->logger->debug(print_r($failed, 1));
+            $this->logger->debug('Authentication error:');
+            $this->logger->debug(print_r($failed->getMessage(), 1));
             throw $failed;
         } catch (\Exception $failed) {
-            $this->logger->debug(print_r($failed, 1));
+            $this->logger->debug('General error during authentication:');
+            $this->logger->debug(print_r($failed->getMessage(), 1));
             throw $failed;
         }
     }

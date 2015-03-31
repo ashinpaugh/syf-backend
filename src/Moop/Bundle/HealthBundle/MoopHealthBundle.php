@@ -9,6 +9,12 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class MoopHealthBundle extends Bundle
 {
+    public function boot()
+    {
+        parent::boot();
+    }
+    
+    
     public function build(ContainerBuilder $container)
     {
         parent::build($container);

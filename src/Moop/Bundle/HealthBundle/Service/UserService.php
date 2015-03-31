@@ -8,14 +8,10 @@ use Monolog\Logger;
 use Moop\Bundle\FatSecretBundle\API\FatSecret;
 use Moop\Bundle\HealthBundle\Entity\User;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
-use Symfony\Component\Security\Core\Encoder\MessageDigestPasswordEncoder;
-use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
-use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\Util\SecureRandom;
 
-class UserService implements UserProviderInterface
+class UserService
 {
     /**
      * @var EntityManager
@@ -63,10 +59,14 @@ class UserService implements UserProviderInterface
             $result = $this->getApi()->getAuthTokenInfo($user->getUsername());
         }
         
-        $user
-            ->setOauthToken($result['auth_token'])
-            ->setOauthTokenSecret($result['auth_secret'])
-        ;
+        $repository = $this->doctrine->getRepository('MoopFatSecretBundle:OAuthProvider');
+        $provider   = $repository->findOneByName('fat_secret');
+        
+        $user->addOAuthToken(
+            $provider,
+            $result['auth_token'],
+            $result['auth_secret']
+        );
         
         return $this;
     }
@@ -204,54 +204,5 @@ class UserService implements UserProviderInterface
     private function getApi()
     {
         return $this->fs_api;
-    }
-    
-    
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function loadUserByUsername($username)
-    {
-        $user = $this->getRepository()->findOneBy([
-            'username' => $username
-        ]);
-        
-        if ($user instanceof User) {
-            return $user;
-        }
-        
-        throw new UsernameNotFoundException(sprintf(
-            'MoopHealthBundle:Service/UserProvider was unable to find username: %s',
-            $username
-        ));
-    }
-    
-    /**
-     * {@inheritdoc]
-     */
-    public function refreshUser(UserInterface $user)
-    {
-        if ($this->supportsClass($class = get_class($user))) {
-            // ->initializeObject?
-            $this->doctrine->refresh($user);
-            
-            return $user;
-        }
-        
-        throw new UnsupportedUserException(sprintf(
-            'Instances of "%s" are not supported.',
-            $class
-        ));
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsClass($class)
-    {
-        $name = $this->getRepository()->getClassName();
-        
-        return $class === $name || is_subclass_of($class, $name);
     }
 }

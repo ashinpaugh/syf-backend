@@ -29,7 +29,7 @@ class BaseController extends Controller
     }
     
     /**
-     * {@inheritdoc}
+     * return ObjectManager
      */
     public function getDoctrine()
     {
