@@ -18,13 +18,51 @@ class LoginController extends BaseController
      */
     public function verifyAction()
     {
-        $days = time() / 86400;
-        //$user = $this->container->get('security.context')->getToken();
-        //$api  = $this->getFatAPI()->setUserOAuthTokens($this->getUser());
+        $this->getUserData($eaten, $consumed, $burned);
+        $this->updatePoints('login', $this->getUser());
         
         return [
             'user_meta' => $this->getUser(),
-            //'food'      => $api->getFoodEntries(null, round($days))
+            'food_meta' => [
+                'consumed'  => $consumed,
+                'burned'    => $burned,
+                'eaten_ids' => $eaten,
+            ]
         ];
+    }
+    
+    protected function getUserData(&$eaten, &$consumed, &$burned)
+    {
+        $api  = $this->getFatAPI();
+        $days = round(time() / 86400);
+        
+        $results = $api
+            ->setUserOAuthTokens($this->getUser())
+            ->getFoodEntries(null, $days)
+        ;
+        
+        $eaten    = [];
+        $consumed = $burned = 0;
+        
+        if (!$results) {
+            return;
+        }
+        
+        $results = $results['food_entry'];
+        
+        if (!is_array($results)) {
+            $this->parseEntry($results, $eaten, $consumed);
+            return;
+        }
+        
+        foreach ($results as $entry) {
+            $this->parseEntry($entry, $eaten, $consumed);
+        }
+    }
+    
+    protected function parseEntry($entry, &$eaten, &$consumed)
+    {
+        $eaten[]   = $entry['food_id'];
+        $consumed += $entry['calories'];
     }
 }

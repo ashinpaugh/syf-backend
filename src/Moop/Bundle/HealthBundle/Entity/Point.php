@@ -5,6 +5,7 @@ namespace Moop\Bundle\HealthBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
+ * @ORM\HasLifecycleCallbacks()
  * @ORM\Entity()
  * @ORM\Table(name="`point`")
  */
@@ -34,11 +35,29 @@ class Point extends BaseEntity
     protected $value;
     
     /**
-     * Construct.
+     * @ORM\Column(type="datetime")
+     * @var \DateTime
      */
-    public function __construct()
+    protected $created_on;
+    
+    /**
+     * Construct.
+     *
+     * @param Goal $goal
+     * @param int  $value
+     */
+    public function __construct(Goal $goal, $value)
     {
-        
+        $this->goal  = $goal;
+        $this->value = $value;
+    }
+    
+    /**
+     * @ORM\PrePersist()
+     */
+    public function onPrePersist()
+    {
+        $this->setCreatedOn(new \DateTime());
     }
     
     /**
@@ -49,6 +68,7 @@ class Point extends BaseEntity
     protected function getSerializableProperties()
     {
         return [
+            'created_on',
             'id',
             'value',
         ];
@@ -114,5 +134,23 @@ class Point extends BaseEntity
         return $this;
     }
     
+    /**
+     * @return \DateTime
+     */
+    public function getCreatedOn()
+    {
+        return $this->created_on;
+    }
     
+    /**
+     * @param \DateTime $created_on
+     *
+     * @return Point
+     */
+    public function setCreatedOn($created_on)
+    {
+        $this->created_on = $created_on;
+        
+        return $this;
+    }
 }

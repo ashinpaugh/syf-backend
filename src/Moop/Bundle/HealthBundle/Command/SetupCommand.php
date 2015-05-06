@@ -5,6 +5,7 @@ namespace Moop\Bundle\HealthBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Moop\Bundle\FatSecretBundle\Entity\OAuthProvider;
+use Moop\Bundle\HealthBundle\Entity\Goal;
 use Moop\Bundle\HealthBundle\Entity\Group;
 use Moop\Bundle\HealthBundle\Entity\School;
 use Moop\Bundle\HealthBundle\Entity\User;
@@ -34,6 +35,7 @@ class SetupCommand extends ContainerAwareCommand
         $school = $this->createSchools();
         $group  = $this->createDefaultGroups();
         
+        $this->createDefaultGoals();
         $this->createAdminAccount($school, $group);
         
         return 0;
@@ -101,6 +103,24 @@ class SetupCommand extends ContainerAwareCommand
         
         $manager = $this->getContainer()->get('doctrine.orm.default_entity_manager');
         $manager->persist($user);
+        $manager->flush();
+    }
+    
+    private function createDefaultGoals()
+    {
+        $manager = $this->getContainer()->get('doctrine.orm.default_entity_manager');
+        $manager->persist(
+            new Goal('Basic usage', 'search', 'Use the basic features of the app.', 10, 10, true)
+        );
+        
+        $manager->persist(
+            new Goal('Logging In', 'login', 'Login with the app.', 15, 5, true)
+        );
+        
+        $manager->persist(
+            new Goal('Tracking Calories', 'track', 'Save a few meals to your calorie diary.', 100, 25, true)
+        );
+        
         $manager->flush();
     }
     

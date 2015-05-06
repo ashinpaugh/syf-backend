@@ -22,21 +22,27 @@ class FoodController extends BaseController
     public function searchAction(Request $request)
     {
         if (!$query = $request->query->get('q')) {
-            throw new BadRequestHttpException('Missing required query param: q');
+            throw new BadRequestHttpException('Missing required query param: q', null, 1);
         }
         
-        return $this->getFatAPI()->searchFood(
+        $results = $this->getFatAPI()->searchFood(
             $query,
             $request->query->get('max_results', 15),
             $request->query->get('page', 0)
         );
+        
+        if ($results && ($user = $this->getUser())) {
+            $this->updatePoints('search', $user);
+        }
+        
+        return $results;
     }
     
     /**
      * @Route("/{food_id}", requirements={"food_id" = "\d+"})
      * @Method({"GET"})
      */
-    public function getAction(Request $request, $food_id)
+    public function getAction($food_id)
     {
         return $this->getFatAPI()->getFood($food_id);
     }
@@ -80,19 +86,20 @@ class FoodController extends BaseController
     /**
      * Add food to your food diary.
      * 
-     * @Route("/diary/{id}/{serving_id}/{name}")
+     * @Route("/diary")
      * @Method({"GET", "POST"})
      */
-    public function createFoodEntryAction(Request $request, $id, $serving_id, $name)
+    public function createFoodEntryAction(Request $request)
     {
-        $meal    = $request->get('meal', 'other');
-        $portion = $request->get('portion', 1.0);
-        //$user    = $this->container->get('security.context')->getToken()->getUser();
-        $user    = $this->getUser();
-        
         return $this->getFatAPI()
-            ->setUserOAuthTokens($user)
-            ->addFoodEntry($id, $serving_id, $name, $meal, $portion)
+            ->setUserOAuthTokens($this->getUser())
+            ->addFoodEntry(
+                $request->get('id'),
+                $request->get('serving_id'),
+                $request->get('name'),
+                $request->get('meal', 'other'),
+                $request->get('portion', 1.0)
+            )
         ;
     }
 }

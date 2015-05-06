@@ -5,7 +5,6 @@ namespace Moop\Bundle\HealthBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Moop\Bundle\FatSecretBundle\API\FatUserInterface;
-use Moop\Bundle\FatSecretBundle\API\OAuthConsumerInterface;
 use Moop\Bundle\FatSecretBundle\Entity\OAuthProvider;
 use Moop\Bundle\FatSecretBundle\Entity\OAuthToken;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -41,7 +40,7 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     protected $groups;
     
     /**
-     * @ORM\OneToMany(targetEntity="Goal", mappedBy="user")
+     * @ORM\OneToMany(targetEntity="Moop\Bundle\HealthBundle\Entity\Goal", mappedBy="user")
      * @var Goal[]
      */
     protected $goals;
@@ -58,6 +57,12 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
      * @var OAuthToken[]|ArrayCollection
      */
     protected $oauth_tokens;
+    
+    /**
+     * @ORM\OneToMany(targetEntity="Moop\Bundle\HealthBundle\Entity\PedometerEntry", mappedBy="user")
+     * @var PedometerEntry[]
+     */
+    protected $entries;
     
     /**
      * @ORM\Id()
@@ -187,8 +192,8 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
      */
     public function eraseCredentials()
     {
-        $this->password = '';
-        $this->salt     = '';
+        //$this->password = '';
+        //$this->salt     = '';
     }
     
     /**
@@ -608,7 +613,7 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     /**
      * Get the OAuth token.
      *
-     * @return OAuthToken[]
+     * @return OAuthToken[]|ArrayCollection
      */
     public function getOAuthTokens()
     {
@@ -625,7 +630,13 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
             : $provider
         ;
         
-        return $this->oauth_tokens->get($name);
+        foreach ($this->getOAuthTokens() as $token) {
+            if ($name === $token->getProvider()->getName()) {
+                return $token;
+            }
+        }
+        
+        throw new \ErrorException('Token not found.');
     }
     
     /**

@@ -97,7 +97,7 @@ class ApiProvider implements AuthenticationProviderInterface
      */
     protected function loadUserByHeader(TokenInterface $token)
     {
-        $username = base64_decode($token->getUsername());
+        $username = base64_decode($token->getUsername(), true);
         $user     = $this->getProvider()->getUser($username);
         
         if (get_class($user) !== $this->user_cls) {

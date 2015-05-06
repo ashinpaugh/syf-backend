@@ -48,14 +48,16 @@ security:
             pattern: ^/v1/(food|school|group|board)+
             security: false
         
-        #login:
-        #    pattern:  ./v1/login*
-        #    security: false
+        login:
+            pattern:  ./v1/login*
+            security: false
+            anonymous: ~
         
         general:
             context: moop_general
             methods:   [GET, POST, PUT, PATCH, DELETE]
             stateless: true
+            security:  true
             #provider:  api
             
             #anonymous: ~

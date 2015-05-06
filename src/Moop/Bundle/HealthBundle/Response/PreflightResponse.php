@@ -29,7 +29,7 @@ class PreflightResponse extends CorsResponse
     protected function getPreflightHeaders()
     {
         return [
-            'Access-Control-Max-Age'           => $this->isCacheable() ? $this->getMaxAge() : 0,
+            'Access-Control-Max-Age'           => $this->isCacheable() ? $this->getMaxAge() : 30,
             'Access-Control-Allow-Origin'      => '*',
             'Access-Control-Allow-Headers'     => 'Content-Type, X-AUTH-TOKEN',
             'Access-Control-Allow-Methods'     => 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
