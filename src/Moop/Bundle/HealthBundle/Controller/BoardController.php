@@ -15,6 +15,31 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 class BoardController extends BaseController
 {
     /**
+     * @Route("/leaders", methods={"GET"})
+     */
+    public function leadersAction()
+    {
+        /* @var QueryBuilder $builder */
+        $builder = $this->getDoctrine()->createQueryBuilder();
+        
+        $builder
+            ->select('
+                u.id, u.username, u.display_name, SUM(p.value) AS total_points,
+                s.id AS school_id, s.name AS school_name, s.initials AS school_initials
+            ')
+            ->from('MoopHealthBundle:User', 'u')
+            ->join('u.school', 's')
+            ->join('u.goals', 'goals')
+            ->join('goals.points', 'p')
+            ->groupBy('u.id')
+            ->orderBy('total_points', 'DESC')
+            ->setMaxResults(25)
+        ;
+        
+        return $builder->getQuery()->getResult();
+    }
+    
+    /**
      * @Route("/group")
      * @Method({"GET"})
      *
@@ -24,21 +49,20 @@ class BoardController extends BaseController
     {
         /* @var QueryBuilder $builder */
         $builder = $this->getDoctrine()->createQueryBuilder();
+        
         $builder
             ->select(
                 'g.id AS group_id',
-                'g.name AS group_name',
-                'SUM(p.value) AS total_points',
-                'COUNT(u.id) AS member_count',
-                'COUNT(goal.id) AS goal_count'
+                'g.name AS display_name',
+                'SUM(points.value) AS total_points'
             )
             ->from('MoopHealthBundle:Group', 'g')
             ->join('g.members', 'u')
-            ->leftJoin('u.goals', 'goal')
-            ->leftJoin('goal.points', 'p')
-            //->having('member_count > 0')
+            ->join('u.goals', 'goals')
+            ->join('goals.points', 'points')
+            ->where('goals.status = 1 AND goal.is_default = false')
             ->groupBy('g.id')
-            ->orderBy('total_points', 'DESC')
+            ->orderBy('points.value')
         ;
         
         return $builder->getQuery()->getResult();
@@ -70,7 +94,7 @@ class BoardController extends BaseController
             ->leftJoin('u.goals', 'goal')
             ->leftJoin('goal.points', 'p')
             ->where('g = :group')
-            //->groupBy('u.id')
+            ->andWhere('goal.status = 1 AND goal.is_default = false')
             ->orderBy('total_points', 'DESC')
             ->setParameter('group', $group)
         ;
@@ -99,6 +123,7 @@ class BoardController extends BaseController
             ->join('s.patrons', 'u')
             ->join('u.goals', 'goal')
             ->join('goal.points', 'p')
+            ->where('goal.status = 1 AND goal.is_default = false')
             ->groupBy('s.id')
             ->orderBy('total_points', 'DESC')
         ;
@@ -120,6 +145,7 @@ class BoardController extends BaseController
         $builder = $this->getDoctrine()->createQueryBuilder();
         $builder
             ->select(
+                //'u.id, u.display_name, u.username, SUM(p.value) AS points',
                 's.name',
                 's.initials',
                 'SUM(p.value) AS total_points',
@@ -130,7 +156,9 @@ class BoardController extends BaseController
             ->join('u.goals', 'goal')
             ->join('goal.points', 'p')
             ->where('u.school = :school')
+            ->andWhere('goal.status = 1 AND goal.is_default = false')
             ->groupBy('s.id')
+            //->addGroupBy('u.id')
             ->orderBy('total_points', 'DESC')
             ->setParameter('school', $school)
         ;

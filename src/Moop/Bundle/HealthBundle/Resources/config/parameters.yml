@@ -1,7 +1,6 @@
 parameters:
     moop.user.class: Moop\Bundle\HealthBundle\Entity\User
     
-    moop.event.points.add_meal: 50
-    moop.event.points.search:   1
-    moop.event.points.login:    2
-    moop.event.points.track:    5
+    moop.event.points.search: 1
+    moop.event.points.login:  2
+    moop.event.points.track:  5

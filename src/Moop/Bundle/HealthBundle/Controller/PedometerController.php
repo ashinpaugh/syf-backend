@@ -31,6 +31,7 @@ class PedometerController extends BaseController
             new PedometerEntry($this->getUser(), $started, $ended, $steps, $calories)
         );
         
+        $this->updatePoints('track', $this->getUser());
         $this->getDoctrine()->flush();
         
         return ['success' => 1];

@@ -58,14 +58,14 @@ class PointsResolverListener
     protected function checkForCompletion(Goal $goal)
     {
         if (!$goal->isComplete()) {
-            $goal->toggleStatus();
-            $this->doctrine->flush($goal);
             return;
         }
         
         $this->doctrine->persist(
             $goal->addNewPoint($goal->getBonusPts())
         );
+        
+        $goal->toggleStatus();
     }
     
     /**

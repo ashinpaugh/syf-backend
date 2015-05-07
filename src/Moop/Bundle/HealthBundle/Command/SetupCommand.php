@@ -77,6 +77,7 @@ class SetupCommand extends ContainerAwareCommand
     
     private function createAdminAccount(School $school, Group $group)
     {
+        $manager = $this->getContainer()->get('doctrine.orm.default_entity_manager');
         $service = $this->getContainer()->get('moop.fat_secret.user.service');
         $user    = new User();
         
@@ -101,7 +102,32 @@ class SetupCommand extends ContainerAwareCommand
             ->createPasswordHash($user, 'password1')
         ;
         
-        $manager = $this->getContainer()->get('doctrine.orm.default_entity_manager');
+        $manager->persist($user);
+        $manager->flush($user);
+        
+        $user = new User();
+        
+        $user
+            ->setUsername('crispymilk')
+            ->setDisplayName('Crispymilk')
+            ->setStudentId(293575)
+            ->setDateOfBirth('1990')
+            ->setEmail('crispy@ou.edu')
+            ->setFeatureSet(User::FULL_FEATURES)
+            ->setFirstName('Crispy')
+            ->setLastName('Milk')
+            ->setGender('male')
+            ->setType(User::FACULTY)
+            ->setSchool($school)
+        ;
+        
+        $group->addMember($user);
+        
+        $service
+            ->setFatOAuthTokens($user)
+            ->createPasswordHash($user, 'password1')
+        ;
+        
         $manager->persist($user);
         $manager->flush();
     }
@@ -119,6 +145,10 @@ class SetupCommand extends ContainerAwareCommand
         
         $manager->persist(
             new Goal('Tracking Calories', 'track', 'Save a few meals to your calorie diary.', 100, 25, true)
+        );
+        
+        $manager->persist(
+            new Goal('Pedometer Entry', 'pedometer', 'Track calories burned using the pedometer.', 250, 75, true)
         );
         
         $manager->flush();

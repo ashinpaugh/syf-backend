@@ -40,7 +40,6 @@ security:
             methods:   [OPTIONS]
             security:  false
             stateless: true
-            #context:   general
         
         null_sec:
             context: moop_general
@@ -49,7 +48,8 @@ security:
             security: false
         
         login:
-            pattern:  ./v1/login*
+            methods:  [POST]
+            pattern:  ^/v1/(login|account)*
             security: false
             anonymous: ~
         

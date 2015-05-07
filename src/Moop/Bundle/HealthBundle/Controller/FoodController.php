@@ -3,12 +3,14 @@
 namespace Moop\Bundle\HealthBundle\Controller;
 
 use Moop\Bundle\HealthBundle\Response\StreamedCorsResponse;
+use Moop\Bundle\HealthBundle\Security\Token\ApiUserToken;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Exception\MissingMandatoryParametersException;
 
 /**
  * @Route("/food")
@@ -31,11 +33,42 @@ class FoodController extends BaseController
             $request->query->get('page', 0)
         );
         
-        if ($results && ($user = $this->getUser())) {
-            $this->updatePoints('search', $user);
-        }
+        $this->authorizeAndAward($request);
         
         return $results;
+    }
+    
+    /**
+     * @Route("/history", methods={"GET"})
+     * 
+     * @param Request $request
+     *
+     * @return array
+     * @throws \Moop\Bundle\FatSecretBundle\Exception\FatException
+     */
+    public function getMealHistory(Request $request)
+    {
+        if (!$username = $request->query->get('q')) {
+            throw new MissingMandatoryParametersException();
+        }
+        
+        $user   = $this->get('moop.fat_secret.user.service')->getUser($username);
+        $days   = new \DateTime();
+        $days   = floor($days->format('U') / 86400);
+        $output = [];
+        
+        for ($i = $days; $i > ($days - 8); $i--) {
+            $result = $this->getFatAPI()
+                ->setUserOAuthTokens($user)
+                ->getFoodEntries(null, $i)
+            ;
+            
+            if ($value = $result['food_entry']) {
+                $output[] = $value;
+            }
+        }
+        
+        return $output;
     }
     
     /**
@@ -60,6 +93,28 @@ class FoodController extends BaseController
     }
     
     /**
+     * Add food to your food diary.
+     * 
+     * @Route("/diary")
+     * @Method({"GET", "POST"})
+     */
+    public function createFoodEntryAction(Request $request)
+    {
+        $this->updatePoints('track', $this->getUser());
+        
+        return $this->getFatAPI()
+            ->setUserOAuthTokens($this->getUser())
+            ->addFoodEntry(
+                $request->get('id'),
+                $request->get('serving_id'),
+                $request->get('name'),
+                $request->get('meal', 'other'),
+                $request->get('portion', 1.0)
+            )
+        ;
+    }
+    
+    /**
      * Stream the API results back to the requesting client as we get them.
      * 
      * @param Integer[] $food_ids
@@ -81,25 +136,5 @@ class FoodController extends BaseController
             ob_flush();
             flush();
         }
-    }
-    
-    /**
-     * Add food to your food diary.
-     * 
-     * @Route("/diary")
-     * @Method({"GET", "POST"})
-     */
-    public function createFoodEntryAction(Request $request)
-    {
-        return $this->getFatAPI()
-            ->setUserOAuthTokens($this->getUser())
-            ->addFoodEntry(
-                $request->get('id'),
-                $request->get('serving_id'),
-                $request->get('name'),
-                $request->get('meal', 'other'),
-                $request->get('portion', 1.0)
-            )
-        ;
     }
 }

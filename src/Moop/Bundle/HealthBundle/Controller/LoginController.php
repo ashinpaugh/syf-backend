@@ -2,7 +2,10 @@
 
 namespace Moop\Bundle\HealthBundle\Controller;
 
+use Moop\Bundle\HealthBundle\Response\CorsResponse;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -16,9 +19,9 @@ class LoginController extends BaseController
      * @Route("", name="login_verify")
      * @Method({"POST"})
      */
-    public function verifyAction()
+    public function verifyAction(Request $request)
     {
-        $this->getUserData($eaten, $consumed, $burned);
+        $this->getUserData($request, $eaten, $consumed, $burned);
         $this->updatePoints('login', $this->getUser());
         
         return [
@@ -31,13 +34,14 @@ class LoginController extends BaseController
         ];
     }
     
-    protected function getUserData(&$eaten, &$consumed, &$burned)
+    protected function getUserData(Request $request, &$eaten, &$consumed, &$burned)
     {
         $api  = $this->getFatAPI();
         $days = round(time() / 86400);
+        $user = $this->doAuthorization($request)->getUser();
         
         $results = $api
-            ->setUserOAuthTokens($this->getUser())
+            ->setUserOAuthTokens($user)
             ->getFoodEntries(null, $days)
         ;
         
@@ -48,21 +52,23 @@ class LoginController extends BaseController
             return;
         }
         
-        $results = $results['food_entry'];
+        $entries = $results['food_entry'];
         
-        if (!is_array($results)) {
-            $this->parseEntry($results, $eaten, $consumed);
+        if (!is_numeric(key($entries))) {
+            $this->parseEntry($entries, $eaten, $consumed);
             return;
         }
         
-        foreach ($results as $entry) {
+        $this->debug($results);
+        
+        foreach ($entries as $entry) {
             $this->parseEntry($entry, $eaten, $consumed);
         }
     }
     
     protected function parseEntry($entry, &$eaten, &$consumed)
     {
-        $eaten[]   = $entry['food_id'];
+        $eaten[]   = $entry['serving_id'];
         $consumed += $entry['calories'];
     }
 }

@@ -20,8 +20,8 @@ class GoalRepository extends EntityRepository
         $builder = $this->getEntityManager()->createQueryBuilder()
             ->select('g')
             ->from('MoopHealthBundle:Goal', 'g')
-            ->where('g.user = :user OR g.user IS NULL')
-            ->andWhere('g.tag = :tag AND g.status = 1')
+            ->where('g.user = :user')
+            ->andWhere('g.tag = :tag AND g.status = 1 AND g.is_default = false')
             ->setParameters([
                 'user' => $user,
                 'tag'  => $tag,
@@ -29,7 +29,17 @@ class GoalRepository extends EntityRepository
         ;
         
         if (!$goal = $builder->getQuery()->getOneOrNullResult()) {
-            return null;
+            $builder = $this->getEntityManager()->createQueryBuilder()
+                ->select('g')
+                ->from('MoopHealthBundle:Goal', 'g')
+                ->where('g.is_default = true')
+                ->andWhere('g.tag = :tag AND g.status = 1')
+                ->setParameters([
+                    'tag' => $tag,
+                ])
+            ;
+            
+            $goal = $builder->getQuery()->getOneOrNullResult();
         }
         
         if ($goal->getUser() instanceof User) {
@@ -41,9 +51,8 @@ class GoalRepository extends EntityRepository
         $this->getEntityManager()->detach($goal);
         
         $goal->setId(null);
+        $goal->setIsDefault(false);
         $goal->setUser($user);
-        
-        //$this->getEntityManager()->persist($goal);
         
         $this->getEntityManager()->persist($goal);
         $this->getEntityManager()->flush();

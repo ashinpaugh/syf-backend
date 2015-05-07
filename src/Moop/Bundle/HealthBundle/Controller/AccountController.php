@@ -4,6 +4,7 @@ namespace Moop\Bundle\HealthBundle\Controller;
 
 use Doctrine\ORM\NonUniqueResultException;
 use Moop\Bundle\HealthBundle\Entity\User;
+use Moop\Bundle\HealthBundle\Security\Token\ApiUserToken;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -62,14 +63,10 @@ class AccountController extends BaseController
             ->createPasswordHash($user, $request->get('password'))
         ;
         
-        //$this->getFatAPI()->
-        
         $this->getDoctrine()->persist($user);
         $this->getDoctrine()->flush();
         
-        return [
-            'user_id' => $user->getId(),
-        ];
+        return ['success' => 1];
     }
     
     /**
