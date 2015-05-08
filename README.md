@@ -1,13 +1,5 @@
-# Vagrant Setup
-Used to setup up consistent environments for local testing and deployment to production.
-
-Definitions:
-
-    - ROOT   = the projects root directory.
-    - DOMAIN = the domain you've configured to test the project.
-
+# Prepare Your Workstation
 1. [Download Virtualbox](https://www.virtualbox.org/wiki/Downloads)
-
 2. Download Vagrant
    - [Vagrant for Windows]
    - Vagrant for OSX and [Brew]:
@@ -19,7 +11,30 @@ Definitions:
    
         `sudo apt-get vagrant`
         
-3. Configure
+3. Enable SSH Agent Forwarding
+    - Example `~/.ssh/config` entry
+    
+        ```
+        Host vagrant
+            User vagrant
+            HostName 127.0.0.1
+            Port 2222
+            IdentityFile ~/.ssh/id_rsa
+        ```
+    - You must use a SSH key that has a passphrase for forwarding to work. To modify an existing key use
+    
+        `ssh-keygen -p -f /path/to/key`
+    - An SSH Agent must remain [open](http://www.phase2technology.com/blog/running-an-ssh-agent-with-vagrant/) while interacting with the VM.
+
+# Vagrant Setup
+Used to setup up consistent environments for local testing and deployment to production.
+
+Definitions:
+
+    - ROOT   = the projects root directory.
+    - DOMAIN = the domain you've configured to test the project.
+
+1. Configure
     - In the project's root directory open `ROOT/Vagrantfile`
         - Ensure that the settings for *vb.memory*, *vb.cpus*, and *config.vm.network* won't conflict with your current setup.
     - Open `ROOT/provision/bootstrap.sh`
@@ -29,7 +44,7 @@ Definitions:
         - Change *DOMAIN* as needed.
         - Copy *DOMAIN*, open your 'hosts' file (location varies based on operating system), and point *DOMAIN* to the IP listed next to *config.vm.network "private_network"* in `ROOT/Vagrantfile`
 
-4. Create the VM
+2. Create the VM
 
     While in ROOT type
     
@@ -40,7 +55,7 @@ Definitions:
     
     This process may take some time to complete depending on your processor and internet speeds as it is download the Ubuntu image and all the project's dependencies.
 
-5. Connect to the VM
+3. Connect to the VM
 
     While in ROOT type:
 
@@ -80,7 +95,7 @@ Definitions:
     $ sudo service apache2 restart
     ```
 
-6. Setup Symfony
+4. Setup Symfony
     - Using [Composer] type while in ROOT:
 
         ```bash        

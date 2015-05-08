@@ -3,14 +3,10 @@
 namespace Moop\Bundle\HealthBundle\Command;
 
 
-use Doctrine\ORM\EntityManagerInterface;
-use Moop\Bundle\FatSecretBundle\Entity\OAuthProvider;
-use Moop\Bundle\HealthBundle\Entity\Goal;
-use Moop\Bundle\HealthBundle\Entity\Group;
-use Moop\Bundle\HealthBundle\Entity\School;
-use Moop\Bundle\HealthBundle\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class SetupCommand extends ContainerAwareCommand
@@ -30,143 +26,42 @@ class SetupCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->createOAuthProvider();
+        $this->doRun([
+            'command'     => 'doctrine:database:drop',
+            '--if-exists' => true,
+            '--force'     => true,
+        ], $output);
         
-        $school = $this->createSchools();
-        $group  = $this->createDefaultGroups();
+        /* Connection class appears to persist even after the entity
+         * manager is reset. After the database is dropped, the DB name
+         * is cleared and doctrine doesn't know where the schema should be placed.
+         */
+        $this->getDoctrine()->getConnection()->close();
         
-        $this->createDefaultGoals();
-        $this->createAdminAccount($school, $group);
-        
-        return 0;
+        $this->doRun(['command' => 'doctrine:database:create'], $output);
+        $this->doRun(['command' => 'doctrine:schema:create'],   $output);
+        $this->doRun(['command' => 'moop:health:fill'],         $output);
     }
     
-    private function createSchools()
+    /**
+     * @param array           $params
+     * @param OutputInterface $output
+     *
+     * @return int
+     */
+    private function doRun(array $params, OutputInterface $output)
     {
-        $ou_school = new School();
+        $name    = current($params);
+        $command = $this->getApplication()->find($name);
         
-        $ou_school
-            ->setName('The University of Oklahoma')
-            ->setInitials('OU')
-        ;
-        
-        $umn_school = new School();
-        
-        $umn_school
-            ->setName('University of Minnesota')
-            ->setInitials('UMN')
-        ;
-        
-        $manager = $this->getContainer()->get('doctrine.orm.default_entity_manager');
-        $manager->persist($ou_school);
-        $manager->persist($umn_school);
-        $manager->flush();
-        
-        return $ou_school;
+        $command->run(new ArrayInput($params), $output);
     }
     
-    private function createDefaultGroups()
+    /**
+     * @return \Doctrine\ORM\EntityManager
+     */
+    private function getDoctrine()
     {
-        $manager = $this->getContainer()->get('doctrine.orm.default_entity_manager');
-        $manager->persist($group = new Group('Alpha'));
-        $manager->persist(new Group('Beta'));
-        $manager->flush();
-        
-        return $group;
-    }
-    
-    private function createAdminAccount(School $school, Group $group)
-    {
-        $manager = $this->getContainer()->get('doctrine.orm.default_entity_manager');
-        $service = $this->getContainer()->get('moop.fat_secret.user.service');
-        $user    = new User();
-        
-        $user
-            ->setUsername('ashinpaugh')
-            ->setDisplayName('ashinpaugh')
-            ->setStudentId(113830416)
-            ->setDateOfBirth('1990')
-            ->setEmail('ashinpaugh@ou.edu')
-            ->setFeatureSet(User::FULL_FEATURES)
-            ->setFirstName('Austin')
-            ->setLastName('Shinpaugh')
-            ->setGender('male')
-            ->setType(User::FACULTY)
-            ->setSchool($school)
-        ;
-        
-        $group->addMember($user);
-        
-        $service
-            ->setFatOAuthTokens($user)
-            ->createPasswordHash($user, 'password1')
-        ;
-        
-        $manager->persist($user);
-        $manager->flush($user);
-        
-        $user = new User();
-        
-        $user
-            ->setUsername('crispymilk')
-            ->setDisplayName('Crispymilk')
-            ->setStudentId(293575)
-            ->setDateOfBirth('1990')
-            ->setEmail('crispy@ou.edu')
-            ->setFeatureSet(User::FULL_FEATURES)
-            ->setFirstName('Crispy')
-            ->setLastName('Milk')
-            ->setGender('male')
-            ->setType(User::FACULTY)
-            ->setSchool($school)
-        ;
-        
-        $group->addMember($user);
-        
-        $service
-            ->setFatOAuthTokens($user)
-            ->createPasswordHash($user, 'password1')
-        ;
-        
-        $manager->persist($user);
-        $manager->flush();
-    }
-    
-    private function createDefaultGoals()
-    {
-        $manager = $this->getContainer()->get('doctrine.orm.default_entity_manager');
-        $manager->persist(
-            new Goal('Basic usage', 'search', 'Use the basic features of the app.', 10, 10, true)
-        );
-        
-        $manager->persist(
-            new Goal('Logging In', 'login', 'Login with the app.', 15, 5, true)
-        );
-        
-        $manager->persist(
-            new Goal('Tracking Calories', 'track', 'Save a few meals to your calorie diary.', 100, 25, true)
-        );
-        
-        $manager->persist(
-            new Goal('Pedometer Entry', 'pedometer', 'Track calories burned using the pedometer.', 250, 75, true)
-        );
-        
-        $manager->flush();
-    }
-    
-    private function createOAuthProvider()
-    {
-        $container = $this->getContainer();
-        $provider  = new OAuthProvider(
-            'fat_secret',
-            $container->getParameter('moop.fat_secret.consumer_key'),
-            $container->getParameter('moop.fat_secret.consumer_secret'),
-            'http://platform.fatsecret.com/rest/server.api',
-            OAuthProvider::v1
-        );
-        
-        $manager = $container->get('doctrine.orm.default_entity_manager');
-        $manager->persist($provider);
-        $manager->flush();
+        return $this->getContainer()->get('doctrine.orm.default_entity_manager');
     }
 }

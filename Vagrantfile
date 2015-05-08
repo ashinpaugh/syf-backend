@@ -9,7 +9,10 @@ Vagrant.configure(2) do |config|
   # Default value is development. Set to whatever you like.
   config.vm.hostname = "development"
   
-  # config.ssh.forward_agent = true
+  # This requires a password on your private RSA key. To add a password, use the command below.
+  # ssh-keygen -p -f /path/to/private
+  config.ssh.forward_agent = true
+  config.ssh.insert_key    = false
   
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
