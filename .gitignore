@@ -2,6 +2,7 @@
 # Custom.
 ##
 .idea
+.vagrant
 
 ##
 # Symfony ignores.

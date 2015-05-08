@@ -4,6 +4,7 @@ imports:
     - { resource: services.yml }
 
 parameters:
+    domain:                          ~
     moop.fat_secret.consumer_key:    ce65ed06e1c945ad82b86b8daebe23d0
     moop.fat_secret.consumer_secret: d2f9386d9262466ab677058705cd34a9
 
