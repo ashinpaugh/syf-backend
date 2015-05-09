@@ -38,9 +38,9 @@ Definitions:
     - In the project's root directory open `ROOT/Vagrantfile`
         - Ensure that the settings for *vb.memory*, *vb.cpus*, and *config.vm.network* won't conflict with your current setup.
     - Open `ROOT/provision/bootstrap.sh`
-        - Note the *SQL_PASSWORD* sh variable at the top. You will use this later when configuring symfony. Change as needed.
+        - Note the *SQL_PASSWORD* sh variable at the top. You may change as needed. This will later be used when configuring symfony.
     - Open `ROOT/provision/apache-vhost.conf`
-        - The line that has *ServerName* followed by a domain name is what this document reffers to as DOMAIN.
+        - The line that has *ServerName* followed by a domain name is what this document refers to as DOMAIN.
         - Change *DOMAIN* as needed.
         - Copy *DOMAIN*, open your 'hosts' file (location varies based on operating system), and point *DOMAIN* to the IP listed next to *config.vm.network "private_network"* in `ROOT/Vagrantfile`
 
@@ -53,7 +53,7 @@ Definitions:
     ```
 
     
-    This process may take some time to complete depending on your processor and internet speeds as it is download the Ubuntu image and all the project's dependencies.
+    This process may take some time to complete depending on your processor and internet speeds as it is downloading a Ubuntu image and installing the project's OS dependencies.
 
 3. Connect to the VM
 
@@ -96,22 +96,22 @@ Definitions:
     ```
 
 4. Setup Symfony
-    - Using [Composer] type while in ROOT:
+    - Go into the symlink-ed folder on the VM:
 
-        ```bash        
-        $ composer update
+        ```bash
+        $ cd /var/www/project && composer update
         ```
         
     - After downloading/updating the project's dependencies, the symfony setup script will run.
-    - Pay attention to the prompts. If you intend on the programming using root's credentials, when prompted for *database_password*, provide the value *SQL_PASSWORD* from the `ROOT/provision/bootstrap.sh` file mentioned earlier.
-    - Seteup program specific configurations using
+    - Pay attention to the prompts. If you intend on the program using root's credentials, when prompted for *database_password*, provide the value *SQL_PASSWORD* from the `ROOT/provision/bootstrap.sh` file mentioned earlier.
+    - Setup program specific configurations using
 
         ```bash    
         $ php app/console moop:health:setup
         ```
     
     
-        Which will setup the API system with some basic goals as well as create the database tables.
+        Which will setup the API system; creating the database tables along with basic goals.
 
 # Setting up the Project
 
@@ -131,7 +131,7 @@ Definitions:
         >           moop.fat_secret.consumer_key:    ~
         >           moop.fat_secret.consumer_secret: ~
     - Fill in the domain the project is using in production. IE: healthawarenesscoalition.org
-    - You need to [register](http://platform.fatsecret.com/api/Default.aspx?screen=r) an account with FatSecret in order to obtain your application's consumer_key/consumer_secret. Fill in these values with the ones listed in the developer portal.
+    - You need to [register](http://platform.fatsecret.com/api/Default.aspx?screen=r) an account with FatSecret in order to obtain your application's *consumer\_key/consumer\_secret*. Fill in these values with the ones listed in the developer portal.
     - In the same file, find the line `cache_provider_type: redis`
         - If you do not plan on using Redis as a caching service change this value to `array`.
 
