@@ -21,6 +21,8 @@ class LoginController extends BaseController
      */
     public function verifyAction(Request $request)
     {
+        $this->doAuthorization($request);
+        
         $this->getUserData($request, $eaten, $consumed, $burned);
         $this->updatePoints('login', $this->getUser());
         
@@ -38,7 +40,7 @@ class LoginController extends BaseController
     {
         $api  = $this->getFatAPI();
         $days = round(time() / 86400);
-        $user = $this->doAuthorization($request)->getUser();
+        $user = $this->getUser();
         
         $results = $api
             ->setUserOAuthTokens($user)

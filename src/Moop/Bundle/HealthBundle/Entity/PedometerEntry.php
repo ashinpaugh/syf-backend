@@ -6,7 +6,9 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity()
- * @ORM\Table(name="pedometer")
+ * @ORM\Table(name="pedometer", indexes={
+ *    @ORM\Index(name="idx_date_range", columns={"started", "ended"})
+ * })
  */
 class PedometerEntry extends BaseEntity
 {

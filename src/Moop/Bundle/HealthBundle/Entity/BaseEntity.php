@@ -51,6 +51,10 @@ abstract class BaseEntity implements \Serializable, \JsonSerializable
         
         foreach ($params as $name) {
             $properties[$name] = $this->$name;
+            
+            if ($api_safe && $this->$name instanceof \DateTime) {
+                $properties[$name] = $this->$name->format('U') * 1000;
+            }
         }
         
         return $properties;

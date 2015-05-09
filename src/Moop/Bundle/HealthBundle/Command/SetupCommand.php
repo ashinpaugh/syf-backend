@@ -26,9 +26,10 @@ class SetupCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        // The --if-exists flag is currently bugged.
         $this->doRun([
             'command'     => 'doctrine:database:drop',
-            '--if-exists' => true,
+            //'--if-exists' => true,
             '--force'     => true,
         ], $output);
         

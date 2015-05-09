@@ -90,7 +90,9 @@ class PopulateFieldsCommand extends ContainerAwareCommand
             ->setFeatureSet(User::FULL_FEATURES)
             ->setFirstName('Austin')
             ->setLastName('Shinpaugh')
-            ->setGender('male')
+            ->setSex(1)
+            ->setWeight(210)
+            ->setHeight(79)
             ->setType(User::FACULTY)
             ->setSchool($school)
         ;
@@ -116,8 +118,10 @@ class PopulateFieldsCommand extends ContainerAwareCommand
             ->setFeatureSet(User::FULL_FEATURES)
             ->setFirstName('Crispy')
             ->setLastName('Milk')
-            ->setGender('male')
+            ->setSex(1)
             ->setType(User::FACULTY)
+            ->setWeight(160)
+            ->setHeight(72)
             ->setSchool($school)
         ;
         

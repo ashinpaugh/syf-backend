@@ -42,7 +42,7 @@ class AccountController extends BaseController
             ->setUsername($request->get('username'))
             ->setDisplayName($request->get('username'))
             ->setEmail($request->get('email'))
-            ->setGender($request->get('gender'))
+            ->setSex($request->get('sex'))
             ->setDateOfBirth($request->get('dob'))
             ->setFirstName($request->get('first_name'))
             ->setLastName($request->get('last_name'))

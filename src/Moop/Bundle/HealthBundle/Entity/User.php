@@ -25,6 +25,7 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     
     const LIMITED_FEATURES = 0;
     const FULL_FEATURES    = 1;
+    const LBS_TO_KG        = 0.453592;
     
     /**
      * @ORM\ManyToOne(targetEntity="School", inversedBy="patrons")
@@ -125,10 +126,13 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     protected $date_of_birth;
     
     /**
-     * @ORM\Column(type="string")
-     * @var String
+     * Females = 0
+     * Males   = 1
+     * 
+     * @ORM\Column(type="smallint")
+     * @var Int
      */
-    protected $gender;
+    protected $sex;
     
     /**
      * @ORM\Column(name="date_created", type="datetime")
@@ -164,7 +168,19 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     protected $is_active;
     
     /**
-     * 
+     * @ORM\Column(type="integer")
+     * @var Int
+     */
+    protected $weight;
+    
+    /**
+     * @ORM\Column(type="integer")
+     * @var Int
+     */
+    protected $height;
+    
+    /**
+     * Constructor.
      */
     public function __construct()
     {
@@ -190,11 +206,7 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     /**
      * @inheritDoc
      */
-    public function eraseCredentials()
-    {
-        //$this->password = '';
-        //$this->salt     = '';
-    }
+    public function eraseCredentials() { }
     
     /**
      * {@inheritdoc}
@@ -211,7 +223,9 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
             'first_name',
             'last_name',
             'date_of_birth',
-            'gender',
+            'sex',
+            'weight',
+            'height',
             
             'date_created',
             'feature_set',
@@ -530,21 +544,21 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     }
     
     /**
-     * @return String
+     * @return Int
      */
-    public function getGender()
+    public function getSex()
     {
-        return $this->gender;
+        return $this->sex;
     }
     
     /**
-     * @param String $gender
+     * @param Int $sex
      *
      * @return User
      */
-    public function setGender($gender)
+    public function setSex($sex)
     {
-        $this->gender = $gender;
+        $this->sex = $sex;
         
         return $this;
     }
@@ -621,7 +635,11 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     }
     
     /**
+     *
+     * @param mixed $provider
+     *
      * @return String
+     * @throws \ErrorException
      */
     public function getOAuthToken($provider)
     {
@@ -673,5 +691,50 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
         $this->oauth_tokens->remove($provider->getName());
         
         return $this;
+    }
+    
+    /**
+     * @return int
+     */
+    public function getWeight()
+    {
+        return $this->weight;
+    }
+    
+    /**
+     * @param int $weight
+     *
+     * @return User
+     */
+    public function setWeight($weight)
+    {
+        $this->weight = $weight;
+        
+        return $this;
+    }
+    
+    /**
+     * @return mixed
+     */
+    public function getHeight()
+    {
+        return $this->height;
+    }
+    
+    /**
+     * @param mixed $height
+     *
+     * @return User
+     */
+    public function setHeight($height)
+    {
+        $this->height = $height;
+        
+        return $this;
+    }
+    
+    public function getWeightInKg()
+    {
+        return $this->getWeight() * self::LBS_TO_KG;
     }
 }
