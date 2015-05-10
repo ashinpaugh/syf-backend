@@ -21,11 +21,7 @@ security:
         #        providers: [ apikey, main ]
         
         api:
-            #id: moop.fat_secret.user.service
             id: moop.fat_secret.security.provider.api
-        #main:
-            #entity: { class: MoopHealthBundle:User, property: username }
-        #    id: moop.fat_secret.user.service
 
     # the main part of the security, where you can set up firewalls
     # for specific sections of your app
@@ -49,23 +45,22 @@ security:
         
         login:
             methods:  [POST]
-            pattern:  ^/v1/(login|account)*
+            pattern:  ^/v1/(login|account)+
             security: false
             anonymous: ~
         
         general:
             context: moop_general
             methods:   [GET, POST, PUT, PATCH, DELETE]
+            pattern:   ^/v1
             stateless: true
             security:  true
-            #provider:  api
-            
-            #anonymous: ~
+            api:       true
             logout:    ~
-            api:       ~
 
     # with these settings you can restrict or allow access for different parts
     # of your application based on roles, ip, host or methods
     # http://symfony.com/doc/current/cookbook/security/access_control.html
     access_control:
+        - { path: ^/v1, roles: IS_AUTHENTICATED_FULLY, methods: [POST, PUT, PATCH, DELETE] }
         #- { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https }

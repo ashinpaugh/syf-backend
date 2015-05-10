@@ -21,7 +21,7 @@ class LoginController extends BaseController
      */
     public function verifyAction(Request $request)
     {
-        $this->doAuthorization($request);
+        //$this->doAuthorization($request);
         
         $this->getUserData($request, $eaten, $consumed, $burned);
         $this->updatePoints('login', $this->getUser());
@@ -32,6 +32,8 @@ class LoginController extends BaseController
                 'consumed'  => $consumed,
                 'burned'    => $burned,
                 'eaten_ids' => $eaten,
+                'steps'     => (int) $this->getDoctrine()->getRepository('MoopHealthBundle:User')->getStepsTaken($this->getUser()),
+                //'steps'     => $this->getDoctrine()->getRepository('MoopHealthBundle:User')->getTotalPoints($this->getUser()),
             ]
         ];
     }
@@ -40,7 +42,7 @@ class LoginController extends BaseController
     {
         $api  = $this->getFatAPI();
         $days = round(time() / 86400);
-        $user = $this->getUser();
+        $user = $this->doAuthorization($request)->getUser();
         
         $results = $api
             ->setUserOAuthTokens($user)

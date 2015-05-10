@@ -52,7 +52,7 @@ class ApiListener implements ListenerInterface
     }
 
     /**
-     * {@inheritDoc]
+     * {@inheritDoc}
      */
     public function handle(GetResponseEvent $event)
     {
@@ -85,9 +85,8 @@ class ApiListener implements ListenerInterface
         }
         
         $pass  = $request->get('_password');
-        $token = $this->manager->authenticate(
-            new ApiUserToken($user, $pass, $this->provider_key)
-        );
+        $token = new ApiUserToken($user, $pass, $this->provider_key);
+        $token = $this->manager->authenticate($token);
         
         $this->security->setToken($token);
     }

@@ -14,6 +14,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * @ORM\Table(name="user", indexes={
  *  @ORM\Index(name="idx_student_id", columns={"student_id"}),
  *  @ORM\Index(name="idx_email", columns={"email"}),
+ *  @ORM\Index(name="idx_username", columns={"username"}),
  *  @ORM\Index(name="idx_name", columns={"first_name", "last_name"}),
  *  @ORM\Index(name="idx_user_type", columns={"type", "school_id"})
  * })
@@ -198,6 +199,10 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
      */
     public function getRoles()
     {
+        if (!$this->getId()) {
+            return [];
+        }
+        
         return static::STUDENT === $this->getType()
             ? ['ROLE_STUDENT']
             : ['ROLE_FACULTY'];

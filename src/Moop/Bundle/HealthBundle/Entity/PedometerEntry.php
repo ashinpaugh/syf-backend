@@ -63,8 +63,8 @@ class PedometerEntry extends BaseEntity
     public function __construct(User $user, $started, $ended, $steps, $calories)
     {
         $this->user     = $user;
-        $this->started  = new \DateTime("@" . $started);
-        $this->ended    = new \DateTime("@" . $ended);
+        $this->started  = new \DateTime("@" . round($started));
+        $this->ended    = new \DateTime("@" . round($ended));
         $this->steps    = $steps;
         $this->calories = $calories;
     }

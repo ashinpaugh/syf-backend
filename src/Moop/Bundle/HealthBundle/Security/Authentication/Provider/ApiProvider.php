@@ -2,7 +2,7 @@
 
 namespace Moop\Bundle\HealthBundle\Security\Authentication\Provider;
 
-use Doctrine\Common\Util\Debug;
+use Moop\Bundle\HealthBundle\Entity\User;
 use Moop\Bundle\HealthBundle\Security\Token\ApiUserToken;
 use Moop\Bundle\HealthBundle\Service\UserService;
 use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface;
@@ -10,7 +10,6 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
  * Loads a user from the database.
@@ -65,11 +64,13 @@ class ApiProvider implements AuthenticationProviderInterface
      */
     public function supports(TokenInterface $token)
     {
-        return $token instanceof ApiUserToken;
+        return $token instanceof ApiUserToken
+            && 'api' === $token->getProviderKey()
+        ;
     }
     
     /**
-     * 
+     * Loads a user based off of form credentials.
      * 
      * @param TokenInterface $token
      *
@@ -89,7 +90,7 @@ class ApiProvider implements AuthenticationProviderInterface
     }
     
     /**
-     * 
+     * Loads the user based off of the X-AUTH-TOKEN header.
      * 
      * @param TokenInterface $token
      *
@@ -97,6 +98,15 @@ class ApiProvider implements AuthenticationProviderInterface
      */
     protected function loadUserByHeader(TokenInterface $token)
     {
+        // The provider is called twice for some reason.
+        if ($token->getUser() instanceof User) {
+            if (!$token->isAuthenticated()) {
+                $token->setAuthenticated(true);
+            }
+            
+            return $token;
+        }
+        
         $username = base64_decode($token->getUsername(), true);
         $user     = $this->getProvider()->getUser($username);
         
@@ -104,7 +114,11 @@ class ApiProvider implements AuthenticationProviderInterface
             throw new AuthenticationException('Invalid credentials sent in header.');
         }
         
-        return new ApiUserToken($user, $user->getPassword(), 'api', $user->getRoles());
+        $api = new ApiUserToken($user, null, 'api', $user->getRoles());
+        $api->setAttributes($token->getAttributes());
+        $api->isAuthenticated(true);
+        
+        return $api;
     }
     
     /**

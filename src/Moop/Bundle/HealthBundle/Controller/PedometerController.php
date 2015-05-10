@@ -23,9 +23,9 @@ class PedometerController extends BaseController
      */
     public function addAction($started, $ended, $steps, $calories)
     {
-        if (!$this->getUser()) {
+        /*if (!$this->getUser()) {
             throw new AccessDeniedException();
-        }
+        }*/
         
         $this->getDoctrine()->persist(
             new PedometerEntry($this->getUser(), $started, $ended, $steps, $calories)

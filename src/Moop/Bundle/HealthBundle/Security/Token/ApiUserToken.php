@@ -14,11 +14,12 @@ class ApiUserToken extends AbstractToken
     
     public function __construct($user, $credentials, $provider, array $roles = [])
     {
-        $this->setUser($user);
+        parent::__construct($roles);
+        
         $this->credentials  = $credentials;
         $this->provider_key = $provider;
         
-        parent::__construct($roles);
+        $this->setUser($user);
     }
     
     /**

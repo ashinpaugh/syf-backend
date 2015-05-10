@@ -103,10 +103,11 @@ class Goal extends BaseEntity
             'id',
             'name',
             'description',
-            'value',
-            'point_progress',
             'is_default',
+            'status',
             'tag',
+            'total_points',
+            'bonus_pts',
         ];
     }
     
