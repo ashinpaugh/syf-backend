@@ -7,6 +7,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @Route("/login")
@@ -21,19 +22,18 @@ class LoginController extends BaseController
      */
     public function verifyAction(Request $request)
     {
-        //$this->doAuthorization($request);
-        
         $this->getUserData($request, $eaten, $consumed, $burned);
         $this->updatePoints('login', $this->getUser());
+        
+        $pedometer = $this->getDoctrine()->getRepository('MoopHealthBundle:User')->getStepsTaken($this->getUser());
         
         return [
             'user_meta' => $this->getUser(),
             'food_meta' => [
                 'consumed'  => $consumed,
-                'burned'    => $burned,
                 'eaten_ids' => $eaten,
-                'steps'     => (int) $this->getDoctrine()->getRepository('MoopHealthBundle:User')->getStepsTaken($this->getUser()),
-                //'steps'     => $this->getDoctrine()->getRepository('MoopHealthBundle:User')->getTotalPoints($this->getUser()),
+                'burned'    => $pedometer['calories'],
+                'steps'     => $pedometer['steps'],
             ]
         ];
     }

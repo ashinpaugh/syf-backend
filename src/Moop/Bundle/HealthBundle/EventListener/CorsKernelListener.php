@@ -54,6 +54,17 @@ class CorsKernelListener
         $this->manager    = $manager;
     }
     
+    public function onKernelError(GetResponseForExceptionEvent $event)
+    {
+        if (!$event->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+        
+        $event->setResponse(
+            $this->buildResponse($event)
+        );
+    }
+    
     /**
      * @param GetResponseForControllerResultEvent $event
      *
@@ -126,14 +137,23 @@ class CorsKernelListener
     /**
      * Format the response data into the appropriate format.
      * 
-     * @param GetResponseForControllerResultEvent $event
+     * @param GetResponseEvent $event
      *
      * @return CorsResponse
      */
-    private function buildResponse(GetResponseForControllerResultEvent $event)
+    private function buildResponse(GetResponseEvent $event)
     {
         $format = $event->getRequest()->get('_format');
-        $result = $event->getControllerResult();
+        $result = '';
+        
+        if ($event instanceof GetResponseForControllerResultEvent) {
+            $result = $event->getControllerResult();
+        } elseif ($event instanceof GetResponseForExceptionEvent) {
+            $result = [
+                'code'    => $event->getException()->getCode(),
+                'message' => $event->getException()->getMessage()
+            ];
+        }
         
         if (is_string($result)) {
             $result = ['message' => $result];

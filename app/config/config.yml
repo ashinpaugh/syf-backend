@@ -4,7 +4,7 @@ imports:
     - { resource: services.yml }
 
 parameters:
-    domain:                          ~
+    domain:                          health.moop.ly
     moop.fat_secret.consumer_key:    ce65ed06e1c945ad82b86b8daebe23d0
     moop.fat_secret.consumer_secret: d2f9386d9262466ab677058705cd34a9
 
@@ -76,6 +76,7 @@ doctrine:
     orm:
         auto_generate_proxy_classes: "%kernel.debug%"
         auto_mapping: true
+        result_cache_driver: redis
 
 # Swiftmailer Configuration
 swiftmailer:

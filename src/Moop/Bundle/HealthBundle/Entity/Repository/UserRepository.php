@@ -11,7 +11,7 @@ class UserRepository extends EntityRepository
     public function getStepsTaken(User $user)
     {
         $builder = $this->getEntityManager()->createQueryBuilder()
-            ->select('SUM(p.steps) as total_steps')
+            ->select('SUM(p.steps) AS steps, SUM(p.calories) AS calories')
             ->from('MoopHealthBundle:PedometerEntry', 'p')
             ->where('p.user = :user')
             ->andWhere('p.started BETWEEN :one AND :two')
@@ -22,7 +22,11 @@ class UserRepository extends EntityRepository
             ])
         ;
         
-        return $builder->getQuery()->getOneOrNullResult();
+        if ($result = $builder->getQuery()->getResult()) {
+            return current($result);
+        }
+        
+        return 0;
     }
     
     public function getTotalPoints(User $user)

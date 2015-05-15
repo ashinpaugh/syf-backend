@@ -48,6 +48,8 @@ class AccountController extends BaseController
             ->setLastName($request->get('last_name'))
             ->setStudentId($request->get('student_id'))
             ->setSchool($school)
+            ->setWeight($request->get('weight'))
+            ->setHeight($request->get('height'))
         ;
         
         if ($group_id = $request->get('group_id')) {

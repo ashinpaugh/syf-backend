@@ -6,6 +6,7 @@ services:
             - { name: kernel.event_listener, event: kernel.view, method: onKernelView, priority: 10 }
             - { name: kernel.event_listener, event: kernel.request, method: onRequest, priority: 10 }
             - { name: kernel.event_listener, event: kernel.response, method: onResponse }
+            - { name: kernel.event_listener, event: kernel.exception, method: onKernelError }
     
     moop.health.event_listener.points_resolver:
         class: Moop\Bundle\HealthBundle\Event\PointsResolverListener

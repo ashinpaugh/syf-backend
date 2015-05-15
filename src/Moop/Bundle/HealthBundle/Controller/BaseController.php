@@ -88,6 +88,11 @@ class BaseController extends Controller
      */
     protected function doAuthorization(Request $request)
     {
+        $security = $this->get('security.token_storage');
+        if ($token = $security->getToken()) {
+            return $token;
+        }
+        
         $token = null;
         if ($header = $request->headers->get('X-AUTH-TOKEN'))  {
             $token = new ApiUserToken($header, null, 'api');
@@ -109,7 +114,7 @@ class BaseController extends Controller
             ->authenticate($token)
         ;
         
-        $this->get('security.context')->setToken($token);
+        $security->setToken($token);
         
         return $token;
     }

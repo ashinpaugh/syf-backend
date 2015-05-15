@@ -1,7 +1,7 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
     "hash": "e91f40ccb3d0bdb97122eb155497ffdb",
@@ -930,7 +930,7 @@
             "source": {
                 "type": "git",
                 "url": "git@bitbucket.org:oumishealthandfitness/fatsecret.git",
-                "reference": "31830e40b2b71c8666e972c2331d1b34c9e3f411"
+                "reference": "3895f5c58f93cc89a1d0d895d12f3ff6983023ea"
             },
             "require": {
                 "doctrine/dbal": "<2.5",
@@ -991,7 +991,7 @@
                 "MIT"
             ],
             "description": "A FatSecret API Library",
-            "time": "2015-03-30 21:51:47"
+            "time": "2015-05-12 20:56:37"
         },
         {
             "name": "psr/log",
@@ -1361,16 +1361,16 @@
         },
         {
             "name": "symfony/symfony",
-            "version": "v2.6.6",
+            "version": "v2.6.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/symfony.git",
-                "reference": "48c9e835a877adfb023b8b6d033d9dd14f342b4b"
+                "reference": "0449d0e1178bc8e934520b20432d1705c3b25e7e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/symfony/zipball/48c9e835a877adfb023b8b6d033d9dd14f342b4b",
-                "reference": "48c9e835a877adfb023b8b6d033d9dd14f342b4b",
+                "url": "https://api.github.com/repos/symfony/symfony/zipball/0449d0e1178bc8e934520b20432d1705c3b25e7e",
+                "reference": "0449d0e1178bc8e934520b20432d1705c3b25e7e",
                 "shasum": ""
             },
             "require": {
@@ -1474,7 +1474,7 @@
             "keywords": [
                 "framework"
             ],
-            "time": "2015-04-01 16:55:26"
+            "time": "2015-05-11 01:58:49"
         },
         {
             "name": "twig/twig",

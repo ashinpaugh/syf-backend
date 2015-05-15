@@ -47,7 +47,6 @@ security:
             methods:  [POST]
             pattern:  ^/v1/(login|account)+
             security: false
-            anonymous: ~
         
         general:
             context: moop_general
