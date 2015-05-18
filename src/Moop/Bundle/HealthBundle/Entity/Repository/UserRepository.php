@@ -26,7 +26,7 @@ class UserRepository extends EntityRepository
             return current($result);
         }
         
-        return 0;
+        return ['steps' => 0, 'calories' => 0];
     }
     
     public function getTotalPoints(User $user)

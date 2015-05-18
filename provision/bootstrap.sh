@@ -8,7 +8,10 @@ echo ">> Starting VM provisioner..."
 sudo apt-get update > /dev/null
 
 echo ">>> Installing server dependencies..."
-sudo apt-get install -y curl wget vim htop unzip autoconf automake git > /dev/null
+sudo apt-get install -y curl wget vim htop unzip autoconf automake git npm > /dev/null
+
+echo ">>> Installing emulator depenencies..."
+sudo npm -g install cordova less ripple-emulator
 
 echo ">>> Installing MySQL dependencies..."
 sudo apt-get install -y debconf-utils > /dev/null

@@ -25,15 +25,15 @@ class LoginController extends BaseController
         $this->getUserData($request, $eaten, $consumed, $burned);
         $this->updatePoints('login', $this->getUser());
         
-        $pedometer = $this->getDoctrine()->getRepository('MoopHealthBundle:User')->getStepsTaken($this->getUser());
+        $meta = $this->getDoctrine()->getRepository('MoopHealthBundle:User')->getStepsTaken($this->getUser());
         
         return [
             'user_meta' => $this->getUser(),
             'food_meta' => [
                 'consumed'  => $consumed,
                 'eaten_ids' => $eaten,
-                'burned'    => $pedometer['calories'],
-                'steps'     => $pedometer['steps'],
+                'burned'    => $meta['calories'] ?: 0,
+                'steps'     => $meta['steps'] ?: 0,
             ]
         ];
     }
@@ -72,7 +72,9 @@ class LoginController extends BaseController
     
     protected function parseEntry($entry, &$eaten, &$consumed)
     {
-        $eaten[]   = $entry['serving_id'];
-        $consumed += $entry['calories'];
+        if ($entry) {
+            $eaten[]   = $entry['serving_id'];
+            $consumed += $entry['calories'];
+        }
     }
 }

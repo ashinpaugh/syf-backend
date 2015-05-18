@@ -3,6 +3,7 @@
 ##
 .idea
 .vagrant
+npm-debug.log
 
 ##
 # Symfony ignores.
