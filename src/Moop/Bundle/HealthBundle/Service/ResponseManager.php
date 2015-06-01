@@ -43,7 +43,7 @@ class ResponseManager
         }
         
         return CorsResponse::create($content, $status, array_merge([
-            'Access-Control-Allow-Origin'  => $this->getOrigin(),
+            'Access-Control-Allow-Origin' => $this->getOrigin(),
         ], $headers));
     }
     

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: ashinpaugh
- * Date: 2/8/15
- * Time: 10:21 AM
- */
 
 namespace Moop\Bundle\HealthBundle\Entity;
 
@@ -51,13 +45,16 @@ class School extends BaseEntity implements \Serializable
     protected $initials;
     
     /**
-     * 
+     * Constructor.
      */
     public function __construct()
     {
         $this->patrons = new ArrayCollection();
     }
     
+    /**
+     * {@inheritdoc}
+     */
     protected function getSerializableProperties()
     {
         return [
@@ -83,11 +80,16 @@ class School extends BaseEntity implements \Serializable
     public function addPatron($patron)
     {
         $this->patrons->add($patron);
+        
+        if (!$patron->getSchool()) {
+            $patron->setSchool($this);
+        }
+        
         return $this;
     }
     
     /**
-     * @param User[] $patron
+     * @param User[] $patrons
      *
      * @return School
      */

@@ -1,46 +1,43 @@
 #!/usr/bin/env bash
 
-#TMP_DIR="/home/vagrant"
-
-SQL_PASSWORD="m1sW1n"
+SQL_PASSWORD="pass"
 
 echo ">> Starting VM provisioner..."
-sudo apt-get update > /dev/null
+sudo apt-get -qq update
 
 echo ">>> Installing server dependencies..."
-sudo apt-get install -y curl wget vim htop unzip autoconf automake git npm > /dev/null
-
-echo ">>> Installing emulator depenencies..."
-sudo npm -g install cordova less ripple-emulator
+sudo apt-get install -y make curl wget vim htop unzip autoconf automake git > /dev/null 2>&1
 
 echo ">>> Installing MySQL dependencies..."
-sudo apt-get install -y debconf-utils > /dev/null
+sudo apt-get install -y debconf-utils > /dev/null 2>&1
 
-# Sets the password to SQL_PASSWORD.
+# Sets the MySQL password.
 debconf-set-selections <<< "mysql-server mysql-server/root_password password $SQL_PASSWORD"
 debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $SQL_PASSWORD"
 
 echo ">>> Installing Apache / Redis / MySQL / PHP.."
-sudo apt-get install -y apache2 redis-server mysql-server php5 > /dev/null
+sudo apt-get install -y apache2 redis-server mysql-server php5 > /dev/null 2>&1
 
 echo ">>> Installing PHP mods..."
-sudo apt-get install -y php5-mysql php5-redis php5-curl php5-gd php5-mcrypt  > /dev/null
+sudo apt-get install -y php5-mysql php5-redis php5-curl php5-gd php5-mcrypt > /dev/null 2>&1
 
 if ! [ -L /etc/apache2/sites-enabled/apache-vhost.conf ]; then
-  echo ">> Creating Apache Virtual Host..."
+  echo ">>> Creating Apache Virtual Host..."
   
   sudo rm -rf /var/www/html
-  sudo rm -f  /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-enabled/000-default.conf > /dev/null
-  sudo cp /var/www/project/provision/apache-vhost.conf /etc/apache2/sites-available/. > /dev/null
+  sudo rm -f  /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-enabled/000-default.conf > /dev/null 2>&1
+  sudo cp /var/www/provision/apache-vhost.conf /etc/apache2/sites-available/apache-vhost.conf > /dev/null 2>&1
   
-  sudo a2enmod rewrite         > /dev/null
-  sudo a2ensite apache-vhost   > /dev/null
-  sudo service apache2 restart > /dev/null
+  sudo a2enmod rewrite         > /dev/null 2>&1
+  sudo a2ensite apache-vhost   > /dev/null 2>&1
+  sudo service apache2 restart > /dev/null 2>&1
 fi
 
-echo ">>> Installing Composer..."
-sudo curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin
-sudo cp /var/www/project/provision/composer /usr/bin/.
-sudo chmod 777 /usr/bin/composer.phar /usr/bin/composer
+if ! [ -L /usr/bin/composer.phar ]; then 
+  echo ">>> Installing Composer..."
+  
+  sudo curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin > /dev/null 2>&1
+  cp /var/www/provision/composer /usr/local/bin/composer
+fi
 
 echo ">> Provisioning complete."

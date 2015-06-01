@@ -17,12 +17,14 @@ class PointEvent extends Event
     protected $tag;
     protected $points;
     protected $user;
+    protected $created_on;
     
     public function __construct($tag, $points, User $user)
     {
-        $this->tag    = $tag;
-        $this->points = $points;
-        $this->user   = $user;
+        $this->tag        = $tag;
+        $this->points     = $points;
+        $this->user       = $user;
+        $this->created_on = new \DateTime();
     }
     
     public function getTag()
@@ -38,5 +40,10 @@ class PointEvent extends Event
     public function getUser()
     {
         return $this->user;
+    }
+    
+    public function getCreatedOn()
+    {
+        return $this->created_on;
     }
 }

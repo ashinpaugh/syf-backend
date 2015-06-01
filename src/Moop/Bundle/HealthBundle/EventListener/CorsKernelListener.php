@@ -3,6 +3,7 @@
 namespace Moop\Bundle\HealthBundle\EventListener;
 
 use Moop\Bundle\HealthBundle\Response\CorsResponse;
+use Moop\Bundle\HealthBundle\Security\Encoder\ApiTokenEncoderInterface;
 use Moop\Bundle\HealthBundle\Service\ResponseManager;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,17 +42,24 @@ class CorsKernelListener
     protected $manager;
     
     /**
-     * Constructor.
-     * 
-     * @param SecurityContext $security
-     * @param Serializer      $serializer
-     * @param ResponseManager $manager
+     * @var ApiTokenEncoderInterface
      */
-    public function __construct(SecurityContext $security, Serializer $serializer, ResponseManager $manager)
+    protected $encoder;
+    
+    /**
+     * Constructor.
+     *
+     * @param SecurityContext          $security
+     * @param Serializer               $serializer
+     * @param ResponseManager          $manager
+     * @param ApiTokenEncoderInterface $encoder
+     */
+    public function __construct(SecurityContext $security, Serializer $serializer, ResponseManager $manager, ApiTokenEncoderInterface $encoder)
     {
         $this->security   = $security;
         $this->serializer = $serializer;
         $this->manager    = $manager;
+        $this->encoder    = $encoder;
     }
     
     public function onKernelError(GetResponseForExceptionEvent $event)
@@ -72,16 +80,7 @@ class CorsKernelListener
      */
     public function onKernelView(GetResponseForControllerResultEvent $event)
     {
-        if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
-            return;
-        }
-        
-        try {
-            $event->setResponse($this->buildResponse($event));
-        } catch (\Exception $e) {
-            $event->getRequest()->attributes->set('_format', 'html');
-            throw $e;
-        }
+        $event->setResponse($this->buildResponse($event));
     }
     
     /**
@@ -104,11 +103,7 @@ class CorsKernelListener
         }
         
         // Parse the request body for params that Symfony doesn't notice.
-        if ($this->handleAjaxRequest($request)) {
-            return;
-        }
-        
-        // TODO: Remember what belonged here...
+        $this->handleAjaxRequest($request);
     }
     
     /**
@@ -130,7 +125,7 @@ class CorsKernelListener
         
         /* @var CorsResponse $response */
         $response->addCustomHeaders([
-            'X-AUTH-TOKEN' => base64_encode($token->getUsername()),
+            'X-AUTH-TOKEN' => $this->encoder->encode($token),
         ]);
     }
     
@@ -159,7 +154,7 @@ class CorsKernelListener
             $result = ['message' => $result];
         }
         
-        // Yea.. I'm not happy with it, but I'm tired of messing with it though.
+        // TODO: Find an elegant solution.
         $content = json_decode(json_encode($result), true);
         $content = $this->serializer->serialize($content, $format);
         

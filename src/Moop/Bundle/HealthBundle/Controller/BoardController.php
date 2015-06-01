@@ -2,7 +2,6 @@
 
 namespace Moop\Bundle\HealthBundle\Controller;
 
-use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Moop\Bundle\HealthBundle\Entity\Group;
 use Moop\Bundle\HealthBundle\Entity\School;

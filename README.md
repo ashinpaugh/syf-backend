@@ -102,7 +102,7 @@ Definitions:
 4. Setup Symfony
     - Go into the symlink-ed folder on the VM:
     
-            $ cd /var/www/project && composer update
+            $ cd /var/www && composer update
     
     - After downloading/updating the project's dependencies, the symfony setup script will run.
     - Pay attention to the prompts. If you intend on the program using root's credentials, when prompted for *database_password*, provide the value *SQL_PASSWORD* from the `ROOT/provision/bootstrap.sh` file mentioned earlier.

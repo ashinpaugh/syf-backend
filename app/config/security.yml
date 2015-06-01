@@ -40,7 +40,7 @@ security:
         null_sec:
             context: moop_general
             methods: [GET]
-            pattern: ^/v1/(food|school|group|board)+
+            pattern: ^/v1/(app|food|school|group|board)+
             security: false
         
         login:

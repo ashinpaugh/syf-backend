@@ -1,17 +1,29 @@
 services:
     moop.health.kernel.listener:
         class: Moop\Bundle\HealthBundle\EventListener\CorsKernelListener
-        arguments: [ "@security.context", "@serializer", "@moop.fat_secret.cors.response_manager" ]
+        arguments:
+            - "@security.context"
+            - "@serializer"
+            - "@moop.fat_secret.cors.response_manager"
+            - "@moop.health.security.token_encoder"
         tags:
             - { name: kernel.event_listener, event: kernel.view, method: onKernelView, priority: 10 }
             - { name: kernel.event_listener, event: kernel.request, method: onRequest, priority: 10 }
             - { name: kernel.event_listener, event: kernel.response, method: onResponse }
             - { name: kernel.event_listener, event: kernel.exception, method: onKernelError }
     
+    moop.health.service.points:
+        class: Moop\Bundle\HealthBundle\Service\PointService
+        arguments: ["@event_dispatcher", "@security.token_storage", "%moop.event.points%"]
+    
+    moop.health.security.token_encoder:
+        class: Moop\Bundle\HealthBundle\Security\Encoder\ApiTokenEncoder
+    
     moop.health.event_listener.points_resolver:
         class: Moop\Bundle\HealthBundle\Event\PointsResolverListener
-        arguments: [ @doctrine.orm.entity_manager, @logger ]
+        arguments: [ @doctrine.orm.entity_manager, @moop.health.service.points, @logger ]
         tags:
+            - { name: kernel.event_listener, event: kernel.terminate, method: onKernelTerminate }
             - { name: kernel.event_listener, event: moop.health.event.points.add, method: onAddPoints }
     
     moop.fat_secret.cors.response_manager:
@@ -45,11 +57,10 @@ services:
         arguments:
             - "@moop.fat_secret.user.service"
             - "@security.password_encoder"
+            - "@moop.health.security.token_encoder"
             - "%moop.user.class%"
 
     moop.fat_secret.serialize.normalize:
         class: Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer
-        #calls:
-            #- [setSerializer, ["@serializer"]]
         tags:
             - name: serializer.normalizer

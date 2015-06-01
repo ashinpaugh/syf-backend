@@ -9,15 +9,24 @@ use Moop\Bundle\FatSecretBundle\Entity\OAuthProvider;
 use Moop\Bundle\FatSecretBundle\Entity\OAuthToken;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+
 /**
  * @ORM\Entity(repositoryClass="Moop\Bundle\HealthBundle\Entity\Repository\UserRepository")
  * @ORM\Table(name="user", indexes={
- *  @ORM\Index(name="idx_student_id", columns={"student_id"}),
+ *  @ORM\Index(name="idx_student_id", columns={"school_id", "student_id"}),
+ *  @ORM\Index(name="idx_school_user_type", columns={"school_id", "type"}),
+ *  @ORM\Index(name="idx_school_display_name", columns={"school_id", "display_name"}),
  *  @ORM\Index(name="idx_email", columns={"email"}),
  *  @ORM\Index(name="idx_username", columns={"username"}),
- *  @ORM\Index(name="idx_name", columns={"first_name", "last_name"}),
- *  @ORM\Index(name="idx_user_type", columns={"type", "school_id"})
+ *  @ORM\Index(name="idx_name", columns={"first_name", "last_name"})
  * })
+ * 
+ * @UniqueEntity(fields={"username"}, message="That username is already taken. Please choose another.")
+ * @UniqueEntity(fields={"email"}, message="That email is already taken. Please choose another.")
+ * @UniqueEntity(fields={"school", "student_id"}, message="That student Id is already in use. Please choose another.")
+ * @UniqueEntity(fields={"school", "display_name"}, message="That display name is already taken. Please choose another.")
  */
 class User extends BaseEntity implements UserInterface, FatUserInterface
 {
@@ -30,6 +39,7 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     
     /**
      * @ORM\ManyToOne(targetEntity="School", inversedBy="patrons")
+     * @Assert\Valid()
      * 
      * @var School
      */
@@ -77,12 +87,16 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     
     /**
      * @ORM\Column(type="string")
+     * @Assert\NotBlank()
+     * 
      * @var String
      */
     protected $username;
     
     /**
      * @ORM\Column(type="string")
+     * @Assert\NotBlank()
+     * 
      * @var String
      */
     protected $password;
@@ -95,12 +109,15 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     
     /**
      * @ORM\Column(type="string")
+     * @Assert\NotBlank()
+     * 
      * @var String
      */
     protected $display_name;
     
     /**
      * @ORM\Column(name="student_id", type="bigint")
+     * @Assert\NotBlank()
      * 
      * @var Integer
      */
@@ -108,6 +125,7 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     
     /**
      * @ORM\Column(name="first_name", type="string")
+     * @Assert\NotBlank()
      * 
      * @var String
      */
@@ -115,6 +133,7 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     
     /**
      * @ORM\Column(name="last_name", type="string")
+     * @Assert\NotBlank()
      * 
      * @var String
      */
@@ -131,19 +150,27 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
      * Males   = 1
      * 
      * @ORM\Column(type="smallint")
+     * @Assert\Choice(
+     *  choices={"0", "1"},
+     *  message="Please choose a valid sex."
+     * )
+     * 
      * @var Int
      */
     protected $sex;
     
     /**
      * @ORM\Column(name="date_created", type="datetime")
+     * @Assert\DateTime()
      * 
      * @var String
      */
     protected $date_created;
     
     /**
-     * @ORM\Column(name="email", type="string")
+     * @ORM\Column(name="email", type="string", unique=true)
+     * @Assert\Email()
+     * 
      * @var String
      */
     protected $email;
@@ -157,6 +184,7 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     
     /**
      * @ORM\Column(type="smallint")
+     * @Assert\NotBlank()
      * 
      * @var Integer
      */
@@ -170,12 +198,16 @@ class User extends BaseEntity implements UserInterface, FatUserInterface
     
     /**
      * @ORM\Column(type="integer")
+     * @Assert\NotBlank()
+     * 
      * @var Int
      */
     protected $weight;
     
     /**
      * @ORM\Column(type="integer")
+     * @Assert\NotBlank()
+     * 
      * @var Int
      */
     protected $height;

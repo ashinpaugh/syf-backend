@@ -5,6 +5,8 @@ namespace Moop\Bundle\HealthBundle\Event;
 use Doctrine\ORM\EntityManager;
 use Monolog\Logger;
 use Moop\Bundle\HealthBundle\Entity\Goal;
+use Moop\Bundle\HealthBundle\Service\PointService;
+use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 
 /**
  * Listens for events associated with users and their points.
@@ -23,9 +25,15 @@ class PointsResolverListener
      */
     protected $logger;
     
-    public function __construct(EntityManager $manager, Logger $logger)
+    /**
+     * @var PointService
+     */
+    protected $service;
+    
+    public function __construct(EntityManager $manager, PointService $service, Logger $logger)
     {
         $this->doctrine = $manager;
+        $this->service  = $service;
         $this->logger   = $logger;
     }
     
@@ -49,6 +57,16 @@ class PointsResolverListener
         $this->doctrine->flush();
         
         $this->logger->addDebug('Awarded user ' . $event->getPoints() . ' points.');
+    }
+    
+    /**
+     * Store any pending points by triggering the point service.
+     * 
+     * @param PostResponseEvent $event
+     */
+    public function onKernelTerminate(PostResponseEvent $event)
+    {
+        $this->service->doDispatch();
     }
     
     /**

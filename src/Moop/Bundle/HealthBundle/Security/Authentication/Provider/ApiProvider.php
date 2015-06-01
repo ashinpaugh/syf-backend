@@ -3,6 +3,7 @@
 namespace Moop\Bundle\HealthBundle\Security\Authentication\Provider;
 
 use Moop\Bundle\HealthBundle\Entity\User;
+use Moop\Bundle\HealthBundle\Security\Encoder\ApiTokenEncoderInterface;
 use Moop\Bundle\HealthBundle\Security\Token\ApiUserToken;
 use Moop\Bundle\HealthBundle\Service\UserService;
 use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface;
@@ -29,22 +30,29 @@ class ApiProvider implements AuthenticationProviderInterface
     protected $encoder;
     
     /**
+     * @var ApiTokenEncoderInterface
+     */
+    protected $token_encoder;
+    
+    /**
      * @var UserInterface
      */
     protected $user_cls;
     
     /**
      * Construct.
-     * 
-     * @param UserService         $service
-     * @param UserPasswordEncoder $encoder
-     * @param String              $user_cls
+     *
+     * @param UserService              $service
+     * @param UserPasswordEncoder      $encoder
+     * @param ApiTokenEncoderInterface $token_encoder
+     * @param String                   $user_cls
      */
-    public function __construct(UserService $service, UserPasswordEncoder $encoder, $user_cls)
+    public function __construct(UserService $service, UserPasswordEncoder $encoder, ApiTokenEncoderInterface $token_encoder, $user_cls)
     {
-        $this->user_service = $service;
-        $this->encoder      = $encoder;
-        $this->user_cls     = $user_cls;
+        $this->user_service  = $service;
+        $this->encoder       = $encoder;
+        $this->token_encoder = $token_encoder;
+        $this->user_cls      = $user_cls;
     }
     
     /**
@@ -107,7 +115,7 @@ class ApiProvider implements AuthenticationProviderInterface
             return $token;
         }
         
-        $username = base64_decode($token->getUsername(), true);
+        $username = $this->getTokenEncoder()->decode($token);
         $user     = $this->getProvider()->getUser($username);
         
         if (get_class($user) !== $this->user_cls) {
@@ -127,5 +135,13 @@ class ApiProvider implements AuthenticationProviderInterface
     protected function getProvider()
     {
         return $this->user_service;
+    }
+    
+    /**
+     * @return ApiTokenEncoderInterface
+     */
+    protected function getTokenEncoder()
+    {
+        return $this->token_encoder;
     }
 }

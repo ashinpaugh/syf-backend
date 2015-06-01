@@ -57,7 +57,9 @@ class Point extends BaseEntity
      */
     public function onPrePersist()
     {
-        $this->setCreatedOn(new \DateTime());
+        if (!$this->getCreatedOn()) {
+            $this->setCreatedOn(new \DateTime());
+        }
     }
     
     /**

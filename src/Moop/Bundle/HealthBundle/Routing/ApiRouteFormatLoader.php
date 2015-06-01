@@ -17,9 +17,7 @@ class ApiRouteFormatLoader extends Loader
         }
         
         $collection = new RouteCollection();
-        //$resource   = '@MoopHealthBundle/Controller/';
-
-        $routes = $this->import($resource, 'annotation');
+        $routes     = $this->import($resource, 'annotation');
         
         /* @var Route $route */
         foreach ($routes as $route) {
@@ -27,9 +25,10 @@ class ApiRouteFormatLoader extends Loader
                 $route->getPath() . ".{_format}"
             );
             
-            $route->setMethods(
-                array_merge($route->getMethods(), ['OPTIONS'])
-            );
+            $route->setMethods(array_merge(
+                $route->getMethods(),
+                ['OPTIONS']
+            ));
         }
 
         $collection->addCollection($routes);

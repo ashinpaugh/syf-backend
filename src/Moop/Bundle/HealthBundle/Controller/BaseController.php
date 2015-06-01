@@ -42,6 +42,24 @@ class BaseController extends Controller
     }
     
     /**
+     * Call the API.
+     *
+     * @param String $controller
+     * @param array  $path
+     * @param array  $query
+     *
+     * @return mixed
+     */
+    public function callApi($controller, array $path = [], array $query = [])
+    {
+        $result     = $this->forward($controller, $path, $query)->getContent();
+        $serializer = $this->get('serializer');
+        $request    = $this->get('request_stack')->getMasterRequest();
+        
+        return $serializer->decode($result, $request->get('_format'));
+    }
+    
+    /**
      * Manually authorize a user that's using features under the null_sec firewall
      * so that they may be awarded points for using the app.
      * 
@@ -66,17 +84,10 @@ class BaseController extends Controller
      */
     public function updatePoints($tag, User $user = null)
     {
-        $user   = !$user instanceof User ? $this->getUser() : $user;
-        $prefix = 'moop.event.points.';
-        $points = $this->container->getParameter("{$prefix}{$tag}");
-        
-        if (!$points) {
-            throw new \ErrorException('Points settings related to this activity were not found.');
-        }
-        
-        $this->get('event_dispatcher')
-            ->dispatch(PointEvents::ADD, new PointEvent($tag, $points, $user))
-        ;
+        $this->get('moop.health.service.points')->addTag(
+            $tag,
+            $user
+        );
     }
     
     /**
