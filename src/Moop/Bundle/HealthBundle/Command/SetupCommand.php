@@ -29,7 +29,7 @@ class SetupCommand extends ContainerAwareCommand
         // The --if-exists flag is currently bugged.
         $this->doRun([
             'command'     => 'doctrine:database:drop',
-            //'--if-exists' => true,
+            '--if-exists' => true,
             '--force'     => true,
         ], $output);
         
@@ -55,7 +55,9 @@ class SetupCommand extends ContainerAwareCommand
         $name    = current($params);
         $command = $this->getApplication()->find($name);
         
-        $command->run(new ArrayInput($params), $output);
+        $command->run(new ArrayInput(array_merge($params, [
+            '-e' => $this->getContainer()->get('kernel')->getEnvironment(),
+        ])), $output);
     }
     
     /**
