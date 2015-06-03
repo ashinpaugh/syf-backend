@@ -16,13 +16,13 @@ Vagrant.configure(2) do |config|
   config.vm.synced_folder ".", "/vagrant", disabled: true
   
   config.vm.provider "virtualbox" do |provider, override|
-      override.vm.hostname = "stage"
       #provider.gui        = true
       provider.memory      = 2048
       provider.cpus        = 2;
       
       provider.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/vagrant", "1"]
       
+      override.vm.hostname = "stage"
       override.vm.provision :shell, path: "provision/env/stage/bootstrap.sh"
       override.vm.network "forwarded_port", guest: 80, host: 8080
       override.vm.network "private_network", ip: "192.168.33.14"
