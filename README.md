@@ -115,7 +115,7 @@ Definitions:
 # Setting up the Project
 
 1. Make an API call.
-    - At this point you should be able to test the [API](http://api.health.moop.test/app_stage.php/v1/group.json). You will know if you were successful if JSON is printed on the screen.
+    - At this point you should be able to test the [API](http://api.health.moop.stage/app_stage.php/v1/group.json). You will know if you were successful if JSON is printed on the screen.
     - If you receive a white screen with a message *You are not allowed to access this file. Check...*:
         - Open `ROOT/web/app_dev.php`
         - Perform some debugging to determine your `REMOTE_ADDR`.

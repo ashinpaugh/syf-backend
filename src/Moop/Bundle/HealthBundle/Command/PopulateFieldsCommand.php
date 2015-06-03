@@ -15,15 +15,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class PopulateFieldsCommand extends ContainerAwareCommand
 {
-    protected $environment;
-    
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
-        $this->environment = $this->getContainer()->get('kernel')->getEnvironment();
-        
         $this
             ->setName('moop:health:fill')
         ;
@@ -81,7 +77,7 @@ class PopulateFieldsCommand extends ContainerAwareCommand
     
     private function createAdminAccount(School $school, Group $group)
     {
-        if ('prod' === $this->environment) {
+        if ('prod' === $this->getContainer()->get('kernel')->getEnvironment()) {
             return;
         }
         

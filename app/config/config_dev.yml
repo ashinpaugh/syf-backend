@@ -2,7 +2,7 @@ imports:
     - { resource: config.yml }
 
 parameters:
-    domain: mis-health.dev
+    domain: health.moop.dev
 
 framework:
     ide: "phpstorm://open?file=%%f&line=%%l"
