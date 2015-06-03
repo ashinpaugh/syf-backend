@@ -54,7 +54,7 @@ class FoodController extends BaseController
         
         $user   = $this->get('moop.fat_secret.user.service')->getUser($username);
         $days   = new \DateTime();
-        $days   = floor($days->format('U') / 86400);
+        $days   = ceil($days->format('U') / 86400);
         $output = [];
         
         for ($i = $days; $i > ($days - 8); $i--) {

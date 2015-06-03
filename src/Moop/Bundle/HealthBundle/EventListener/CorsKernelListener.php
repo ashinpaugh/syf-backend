@@ -5,15 +5,12 @@ namespace Moop\Bundle\HealthBundle\EventListener;
 use Moop\Bundle\HealthBundle\Response\CorsResponse;
 use Moop\Bundle\HealthBundle\Security\Encoder\ApiTokenEncoderInterface;
 use Moop\Bundle\HealthBundle\Service\ResponseManager;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\SecurityContext;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Serializer;
@@ -108,6 +105,8 @@ class CorsKernelListener
     
     /**
      * Add the user token ID to the headers if a valid session was found.
+     *
+     * @param FilterResponseEvent $event
      */
     public function onResponse(FilterResponseEvent $event)
     {
@@ -174,7 +173,7 @@ class CorsKernelListener
      * @param Request $request
      *
      * @return bool
-     * @throws \HttpInvalidParamException
+     * @throws BadRequestHttpException
      */
     private function handleAjaxRequest(Request $request)
     {
@@ -183,8 +182,9 @@ class CorsKernelListener
         }
         
         if (!$params = json_decode($request->getContent(), true)) {
-            throw new \HttpInvalidParamException(
-                'Unable to decode request params'
+            throw new BadRequestHttpException(
+                'Unable to decode request params: '
+                .  $request->getContent()
             );
         }
         
