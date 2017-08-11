@@ -2,10 +2,11 @@ services:
     moop.health.kernel.listener:
         class: Moop\Bundle\HealthBundle\EventListener\CorsKernelListener
         arguments:
-            - "@security.context"
+            - "@security.token_storage"
             - "@serializer"
-            - "@moop.fat_secret.cors.response_manager"
+            - "@moop.health.cors.response_manager"
             - "@moop.health.security.token_encoder"
+            - "@logger"
         tags:
             - { name: kernel.event_listener, event: kernel.view, method: onKernelView, priority: 10 }
             - { name: kernel.event_listener, event: kernel.request, method: onRequest, priority: 10 }
@@ -16,25 +17,37 @@ services:
         class: Moop\Bundle\HealthBundle\Service\PointService
         arguments: ["@event_dispatcher", "@security.token_storage", "%moop.event.points%"]
     
-    moop.health.security.token_encoder:
+    moop.health.security.token_encoder.basic:
         class: Moop\Bundle\HealthBundle\Security\Encoder\ApiTokenEncoder
+    
+    moop.health.security.token_encoder.jwt:
+        class: Moop\Bundle\HealthBundle\Security\Encoder\JwtTokenEncoder
+        arguments:
+            - "@moop.health.security.token_helper.hash"
+            - "@logger"
+    
+    moop.health.security.token_helper.hash:
+        class: "%moop.health.security.token_helper.hash.class%"
+        arguments:
+            - "%moop.health.security.token_encoder.algorithm%"
+            - false
     
     moop.health.event_listener.points_resolver:
         class: Moop\Bundle\HealthBundle\Event\PointsResolverListener
-        arguments: [ @doctrine.orm.entity_manager, @moop.health.service.points, @logger ]
+        arguments: [ "@doctrine", "@moop.health.service.points", "@logger" ]
         tags:
             - { name: kernel.event_listener, event: kernel.terminate, method: onKernelTerminate }
             - { name: kernel.event_listener, event: moop.health.event.points.add, method: onAddPoints }
     
-    moop.fat_secret.cors.response_manager:
+    moop.health.cors.response_manager:
         class: Moop\Bundle\HealthBundle\Service\ResponseManager
         arguments:
             - "@router"
     
-    moop.fat_secret.user.service:
+    moop.health.user.service:
         class: Moop\Bundle\HealthBundle\Service\UserService
         arguments:
-          - "@doctrine.orm.entity_manager"
+          - "@doctrine"
           - "@moop.fat_secret.api"
           - "@security.encoder_factory"
           - "@logger"
@@ -44,23 +57,27 @@ services:
         tags:
             - { name: routing.loader }
 
-    moop.fat_secret.security.firewall.api:
+    moop.health.security.firewall.api:
         class: Moop\Bundle\HealthBundle\Security\Firewall\ApiListener
         arguments:
-            - "@security.context"
+            - "@security.token_storage"
             - "@security.authentication.manager"
             - "@logger"
-            - 'api'
+            - "%moop.user.provider.key%"
+            - "%moop.user.provider.algorithm%"
     
-    moop.fat_secret.security.provider.api:
+    moop.health.security.provider.api:
         class: Moop\Bundle\HealthBundle\Security\Authentication\Provider\ApiProvider
         arguments:
-            - "@moop.fat_secret.user.service"
+            - "@moop.health.user.service"
             - "@security.password_encoder"
             - "@moop.health.security.token_encoder"
+            - "%moop.user.provider.key%"
             - "%moop.user.class%"
+            - "%moop.health.security.token_encoder.algorithm%"
+            - "@logger"
 
-    moop.fat_secret.serialize.normalize:
+    moop.health.serialize.normalize:
         class: Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer
         tags:
             - name: serializer.normalizer

@@ -2,8 +2,6 @@
 
 namespace Moop\Bundle\HealthBundle\Response;
 
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-
 /**
  * Handles common headers that need to be set to properly handle the preflight
  * requests.
@@ -24,14 +22,14 @@ class PreflightResponse extends CorsResponse
     }
     
     /**
-     * @return ResponseHeaderBag
+     * @return String[]
      */
     protected function getPreflightHeaders()
     {
         return [
             'Access-Control-Max-Age'           => $this->isCacheable() ? $this->getMaxAge() : 30,
             'Access-Control-Allow-Origin'      => '*',
-            'Access-Control-Allow-Headers'     => 'Content-Type, X-AUTH-TOKEN',
+            'Access-Control-Allow-Headers'     => 'Content-Type, Authorization',
             'Access-Control-Allow-Methods'     => 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
             //'Access-Control-Allow-Credentials' => 'true',
         ];

@@ -4,11 +4,9 @@ namespace Moop\Bundle\HealthBundle\Controller;
 
 use Doctrine\ORM\NonUniqueResultException;
 use Moop\Bundle\HealthBundle\Entity\User;
-use Moop\Bundle\HealthBundle\Security\Token\ApiUserToken;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\SecurityContext;
 
 /**
  * @Route("/account")
@@ -21,7 +19,7 @@ class AccountController extends BaseController
      */
     public function createAction(Request $request)
     {
-        $service = $this->container->get('moop.fat_secret.user.service');
+        $service = $this->container->get('moop.health.user.service');
         $valid   = $service->checkOriginalCredentials(
             $request->get('username'),
             $request->get('email'),

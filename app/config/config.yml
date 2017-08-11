@@ -9,8 +9,9 @@ parameters:
     moop.fat_secret.consumer_secret: d2f9386d9262466ab677058705cd34a9
 
 moop_fat_secret:
-    consumer_key:        %moop.fat_secret.consumer_key%
-    consumer_secret:     %moop.fat_secret.consumer_secret%
+    consumer_key:        "%moop.fat_secret.consumer_key%"
+    consumer_secret:     "%moop.fat_secret.consumer_secret%"
+    # Example cache providers. Add as needed.
     cache_provider_type: redis
     cache_providers:
         array:
@@ -77,11 +78,3 @@ doctrine:
         auto_generate_proxy_classes: "%kernel.debug%"
         auto_mapping: true
         result_cache_driver: redis
-
-# Swiftmailer Configuration
-swiftmailer:
-    transport: "%mailer_transport%"
-    host:      "%mailer_host%"
-    username:  "%mailer_user%"
-    password:  "%mailer_password%"
-    spool:     { type: memory }

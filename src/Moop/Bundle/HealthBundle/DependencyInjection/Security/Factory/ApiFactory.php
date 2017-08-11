@@ -9,8 +9,8 @@ use Symfony\Component\DependencyInjection\DefinitionDecorator;
 
 class ApiFactory implements SecurityFactoryInterface
 {
-    const PROVIDER = 'moop.fat_secret.security.provider.api';
-    const LISTENER = 'moop.fat_secret.security.firewall.api';
+    const PROVIDER = 'moop.health.security.provider.api';
+    const LISTENER = 'moop.health.security.firewall.api';
     
     /**
      * {@inheritDoc}

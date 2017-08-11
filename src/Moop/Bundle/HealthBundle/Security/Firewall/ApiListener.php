@@ -3,18 +3,15 @@
 namespace Moop\Bundle\HealthBundle\Security\Firewall;
 
 
-use Doctrine\Common\Util\Debug;
 use Monolog\Logger;
-use Moop\Bundle\HealthBundle\Security\Token\ApiUserToken;
+use Moop\Bundle\HealthBundle\Security\Token\AbstractApiUserToken;
+use Moop\Bundle\HealthBundle\Security\Token\JwtUserToken;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\SecurityContext;
 use Symfony\Component\Security\Core\SecurityContextInterface;
-use Symfony\Component\Security\Http\Firewall\AbstractAuthenticationListener;
 use Symfony\Component\Security\Http\Firewall\ListenerInterface;
 
 class ApiListener implements ListenerInterface
@@ -35,20 +32,28 @@ class ApiListener implements ListenerInterface
     protected $provider_key;
     
     /**
+     * @var string
+     */
+    protected $algorithm;
+    
+    /**
      * @var Logger
      */
     protected $logger;
+    
     
     public function __construct(
         SecurityContextInterface $securityContext,
         AuthenticationManagerInterface $authenticationManager,
         Logger $logger,
-        $provider_key
+        $provider_key,
+        $algorithm
     ) {
         $this->security     = $securityContext;
         $this->manager      = $authenticationManager;
         $this->logger       = $logger;
         $this->provider_key = $provider_key;
+        $this->algorithm    = $algorithm;
     }
 
     /**
@@ -80,14 +85,82 @@ class ApiListener implements ListenerInterface
      */
     protected function attemptAuthentication(Request $request)
     {
-        if (!$user = $request->get('_username', $request->headers->get('X-AUTH-TOKEN', ''))) {
+        if (!$token = $this->getToken($request)) {
             return;
         }
         
-        $pass  = $request->get('_password');
-        $token = new ApiUserToken($user, $pass, $this->provider_key);
-        $token = $this->manager->authenticate($token);
+        $this->security->setToken(
+            $this->manager->authenticate($this->getToken($request))
+        );
+    }
+    
+    /**
+     * @param Request $request
+     *
+     * @return AbstractApiUserToken
+     */
+    protected function getToken(Request $request)
+    {
+        return $request->headers->has('Authorization')
+            ? $this->getSignedToken($request)
+            : $this->getStandardToken($request)
+        ;
+    }
+    
+    /**
+     * @param Request $request
+     *
+     * @return AbstractApiUserToken|null
+     */
+    private function getStandardToken(Request $request)
+    {
+        if (!$user = $request->get('_username')) {
+            return null;
+        }
         
-        $this->security->setToken($token);
+        $this->logger->addDebug('STANDARD TOKEN');
+        return $this->createToken($request, $request->get('_password'), $user);
+    }
+    
+    /**
+     * @param Request $request
+     *
+     * @return AbstractApiUserToken|null
+     */
+    private function getSignedToken(Request $request)
+    {
+        list($credentials) = sscanf(
+            $request->headers->get('Authorization'),
+            'Bearer %s'
+        );
+        
+        $this->logger->addDebug('bearer: ' . $credentials);
+        
+        if (!$credentials) {
+            return null;
+        }
+        
+        $this->logger->addDebug('SIGNED TOKEN');
+        return $this->createToken($request, $credentials);
+    }
+    
+    /**
+     * Build the token.
+     * 
+     * @param Request $request
+     * @param string  $credentials
+     * @param string  $username
+     * 
+     * @return JwtUserToken
+     */
+    private function createToken(Request $request, $credentials, $username = '')
+    {
+        return new JwtUserToken(
+            $username,
+            $credentials,
+            $request->getHost(),
+            $this->algorithm,
+            $this->provider_key
+        );
     }
 }

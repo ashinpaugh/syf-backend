@@ -3,11 +3,8 @@
 namespace Moop\Bundle\HealthBundle\Controller;
 
 use Moop\Bundle\HealthBundle\Response\StreamedCorsResponse;
-use Moop\Bundle\HealthBundle\Security\Token\ApiUserToken;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Exception\MissingMandatoryParametersException;
@@ -33,7 +30,9 @@ class FoodController extends BaseController
             $request->query->get('page', 0)
         );
         
-        $this->authorizeAndAward($request);
+        if ($user = $this->getUser()) {
+            $this->updatePoints('search', $user);
+        }
         
         return $results;
     }
@@ -52,20 +51,21 @@ class FoodController extends BaseController
             throw new MissingMandatoryParametersException();
         }
         
-        $user   = $this->get('moop.fat_secret.user.service')->getUser($username);
-        $days   = new \DateTime();
-        $days   = ceil($days->format('U') / 86400);
+        $user   = $this->get('moop.health.user.service')->getUser($username);
+        $now    = new \DateTime();
         $output = [];
         
-        for ($i = $days; $i > ($days - 8); $i--) {
+        for ($i = 7; $i > 0; $i--) {
             $result = $this->getFatAPI()
                 ->setUserOAuthTokens($user)
-                ->getFoodEntries(null, $i)
+                ->getFoodEntries(null, $now) //->format('U')
             ;
             
             if ($value = $result['food_entry']) {
                 $output[] = $value;
             }
+            
+            $now = $now->modify("-{$i} days");
         }
         
         return $output;
@@ -102,6 +102,8 @@ class FoodController extends BaseController
     {
         $this->updatePoints('track', $this->getUser());
         
+        $day = floor(time() / 86400);
+        
         return $this->getFatAPI()
             ->setUserOAuthTokens($this->getUser())
             ->addFoodEntry(
@@ -109,7 +111,8 @@ class FoodController extends BaseController
                 $request->get('serving_id'),
                 $request->get('name'),
                 $request->get('meal', 'other'),
-                $request->get('portion', 1.0)
+                $request->get('portion', 1.0),
+                $day
             )
         ;
     }

@@ -82,7 +82,7 @@ class PopulateFieldsCommand extends ContainerAwareCommand
         }
         
         $manager = $this->getContainer()->get('doctrine.orm.default_entity_manager');
-        $service = $this->getContainer()->get('moop.fat_secret.user.service');
+        $service = $this->getContainer()->get('moop.health.user.service');
         $user    = new User();
         
         $user

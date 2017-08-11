@@ -4,14 +4,9 @@ namespace Moop\Bundle\HealthBundle\Controller;
 
 use Moop\Bundle\FatSecretBundle\API\FatSecret;
 use Moop\Bundle\HealthBundle\Entity\User;
-use Moop\Bundle\HealthBundle\Event\PointEvent;
-use Moop\Bundle\HealthBundle\Event\PointEvents;
-use Moop\Bundle\HealthBundle\Security\Token\ApiUserToken;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Moop\Bundle\HealthBundle\Security\Token\JwtUserToken;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
-use Moop\Bundle\HealthBundle\Entity\Goal;
 
 class BaseController extends Controller
 {
@@ -60,21 +55,6 @@ class BaseController extends Controller
     }
     
     /**
-     * Manually authorize a user that's using features under the null_sec firewall
-     * so that they may be awarded points for using the app.
-     * 
-     * @param Request $request
-     *
-     * @throws \ErrorException
-     */
-    public function authorizeAndAward(Request $request)
-    {
-        if ($token = $this->doAuthorization($request)) {
-            $this->updatePoints('search', $token->getUser());
-        }
-    }
-    
-    /**
      * Add points when a user completes a task.
      *
      * @param String $tag
@@ -88,46 +68,6 @@ class BaseController extends Controller
             $tag,
             $user
         );
-    }
-    
-    /**
-     * Manually authorization to override firewall definitions.
-     * 
-     * @param Request $request
-     *
-     * @return null|\Symfony\Component\Security\Core\Authentication\Token\TokenInterface|void
-     */
-    protected function doAuthorization(Request $request)
-    {
-        $security = $this->get('security.token_storage');
-        if ($token = $security->getToken()) {
-            return $token;
-        }
-        
-        $token = null;
-        if ($header = $request->headers->get('X-AUTH-TOKEN'))  {
-            $token = new ApiUserToken($header, null, 'api');
-        }
-        
-        if (!$token && $username = $request->request->get('_username')) {
-            $token = new ApiUserToken(
-                $username,
-                $request->request->get('_password'),
-                'api'
-            );
-        }
-        
-        if (!$token) {
-            return null;
-        }
-        
-        $token = $this->get('moop.fat_secret.security.provider.api')
-            ->authenticate($token)
-        ;
-        
-        $security->setToken($token);
-        
-        return $token;
     }
     
     /**

@@ -17,10 +17,10 @@ class LoginController extends BaseController
     /**
      * This action is intercepted by the Security bundle.
      * 
-     * @Route("", name="login_verify")
+     * @Route("/check", name="login_check")
      * @Method({"POST"})
      */
-    public function verifyAction(Request $request)
+    public function checkAction(Request $request)
     {
         $this->getUserData($request, $eaten, $consumed, $burned);
         $this->updatePoints('login', $this->getUser());
@@ -41,9 +41,9 @@ class LoginController extends BaseController
     protected function getUserData(Request $request, &$eaten, &$consumed, &$burned)
     {
         $api  = $this->getFatAPI();
-        $days = round(time() / 86400);
-        $user = $this->doAuthorization($request)->getUser();
-        
+        $days = ceil(time());
+        $user = $this->getUser();
+        $this->debug(['time' => $days]);
         $results = $api
             ->setUserOAuthTokens($user)
             ->getFoodEntries(null, $days)
@@ -56,6 +56,7 @@ class LoginController extends BaseController
             return;
         }
         
+        $this->debug(['result' => $results]);
         $entries = $results['food_entry'];
         
         if (!is_numeric(key($entries))) {

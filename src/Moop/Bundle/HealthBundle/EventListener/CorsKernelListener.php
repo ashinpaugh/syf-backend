@@ -2,9 +2,11 @@
 
 namespace Moop\Bundle\HealthBundle\EventListener;
 
+use Monolog\Logger;
 use Moop\Bundle\HealthBundle\Response\CorsResponse;
 use Moop\Bundle\HealthBundle\Security\Encoder\ApiTokenEncoderInterface;
 use Moop\Bundle\HealthBundle\Service\ResponseManager;
+use Symfony\Component\HttpFoundation\HeaderBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -43,6 +45,8 @@ class CorsKernelListener
      */
     protected $encoder;
     
+    protected $logger;
+    
     /**
      * Constructor.
      *
@@ -51,12 +55,13 @@ class CorsKernelListener
      * @param ResponseManager          $manager
      * @param ApiTokenEncoderInterface $encoder
      */
-    public function __construct(SecurityContext $security, Serializer $serializer, ResponseManager $manager, ApiTokenEncoderInterface $encoder)
+    public function __construct(SecurityContext $security, Serializer $serializer, ResponseManager $manager, ApiTokenEncoderInterface $encoder, Logger $logger)
     {
         $this->security   = $security;
         $this->serializer = $serializer;
         $this->manager    = $manager;
         $this->encoder    = $encoder;
+        $this->logger     = $logger;
     }
     
     public function onKernelError(GetResponseForExceptionEvent $event)
@@ -121,11 +126,28 @@ class CorsKernelListener
         if (!($response = $event->getResponse()) instanceof CorsResponse) {
             return;
         }
-        
+        $this->logger->addDebug($this->encoder->encode($token));
         /* @var CorsResponse $response */
         $response->addCustomHeaders([
-            'X-AUTH-TOKEN' => $this->encoder->encode($token),
+            'Authorization' => $this->encoder->encode($token),
         ]);
+    }
+    
+    /**
+     * PHP does not include HTTP_AUTHORIZATION in the $_SERVER array, so this header is missing.
+     * We retrieve it from apache_request_headers()
+     *
+     * @param HeaderBag $headers
+     * @see http://stackoverflow.com/questions/11990388/request-headers-bag-is-missing-authorization-header-in-symfony-2
+     */
+    protected function fixAuthHeader(HeaderBag $headers)
+    {
+        if (!$headers->has('Authorization') && function_exists('apache_request_headers')) {
+            $all = apache_request_headers();
+            if (isset($all['Authorization'])) {
+                $headers->set('Authorization', $all['Authorization']);
+            }
+        }
     }
     
     /**
@@ -177,6 +199,8 @@ class CorsKernelListener
      */
     private function handleAjaxRequest(Request $request)
     {
+        $this->fixAuthHeader($request->headers);
+        
         if ('json' !== $request->getContentType() || !$request->getContent()) {
             return false;
         }

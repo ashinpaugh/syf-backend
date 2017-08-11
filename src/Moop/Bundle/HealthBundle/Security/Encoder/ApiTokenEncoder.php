@@ -4,6 +4,7 @@ namespace Moop\Bundle\HealthBundle\Security\Encoder;
 
 use Moop\Bundle\HealthBundle\Security\Token\ApiUserToken;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 /**
  * Encodes the user's X-AUTH-TOKEN for validation after the user
@@ -19,7 +20,7 @@ class ApiTokenEncoder implements ApiTokenEncoderInterface
     /**
      * {@inheritdoc}
      */
-    public function encode(TokenInterface $token)
+    public function encode(AbstractApiUserToken $token)
     {
         return $this->doEncode($token);
     }
@@ -27,7 +28,7 @@ class ApiTokenEncoder implements ApiTokenEncoderInterface
     /**
      * {@inheritdoc}
      */
-    public function decode(TokenInterface $token)
+    public function decode(AbstractApiUserToken $token)
     {
         return $this->doDecode($token);
     }
@@ -35,9 +36,15 @@ class ApiTokenEncoder implements ApiTokenEncoderInterface
     /**
      * {@inheritdoc}
      */
-    public function check(TokenInterface $token, $credentials)
+    public function authenticate(AbstractApiUserToken $token, $credentials = null)
     {
-        return $this->doEncode($token) === $credentials;
+        if ($this->doEncode($token) !== $credentials) {
+            throw new AuthenticationException("The hash is invalid.");
+        }
+        
+        $token->setAuthenticated(true);
+        
+        return true;
     }
     
     /**

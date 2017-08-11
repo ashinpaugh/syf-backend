@@ -1,5 +1,11 @@
 parameters:
     moop.user.class: Moop\Bundle\HealthBundle\Entity\User
+    moop.user.provider.key: JWT
+    moop.user.provider.algorithm: HS256
+    
+    moop.health.security.token_helper.hash.class: Symfony\Component\Security\Core\Encoder\Pbkdf2PasswordEncoder
+    moop.health.security.token_encoder.algorithm: sha256
+    moop.health.security.encoder.provider_id: moop.health.security.token_encoder.jwt 
     
     moop.event.points:
         search: 1

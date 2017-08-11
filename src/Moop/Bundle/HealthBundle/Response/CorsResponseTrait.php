@@ -35,12 +35,12 @@ trait CorsResponseTrait
      */
     protected function appendCustomCorsHeaders()
     {
-        $values = $this->cors_headers->allPreserveCase();
-        $titles = implode(', ', array_keys($values));
+        $custom = $this->cors_headers->allPreserveCase();
+        $names  = implode(', ', array_keys($custom));
     
         if (isset($this->headers)) {
-            $this->headers->add(array_merge($values, [
-                'Access-Control-Expose-Headers' => $titles,
+            $this->headers->add(array_merge($custom, [
+                'Access-Control-Expose-Headers' => $names,
             ]));
         }
     }
